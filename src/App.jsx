@@ -534,7 +534,7 @@ function HomePage({ onNavigate }) {
             <span style={{fontSize:13,color:C.caramel,fontWeight:600,letterSpacing:"0.5px"}}>ЕГЭ · Русский язык · 2025</span>
           </div>
         <h1 style={{ fontSize: 46, fontWeight: 800, margin: 0, letterSpacing: "-1.5px", lineHeight: 1.1, background: `linear-gradient(135deg,#e8d5ff 0%,${C.caramel} 40%,${C.accent2} 70%,#fda4af 100%)`, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
-          Русь<span style={{ color: C.caramel }}>Не</span>Кусь
+          <span style={{background:"linear-gradient(135deg,#c4b5fd,#a78bfa)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent"}}>Рус</span><span style={{background:"linear-gradient(135deg,#f0abfc,#fda4af)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent"}}>НеКусь</span>
         </h1>
         <p style={{ color: C.mocha, fontSize: 15, margin: "10px 0 0" }}>Тренажёр по русскому языку для ЕГЭ</p>
         <p style={{ color: C.latte, fontSize: 13, margin: "6px 0 0" }}>Без паники и осуждения — только практика и поддержка</p>
