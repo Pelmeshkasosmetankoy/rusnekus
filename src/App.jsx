@@ -531,7 +531,7 @@ function HomePage({ onNavigate }) {
       <header style={{ padding: "60px 24px 32px", textAlign: "center", animation: "fadeUp 0.6s ease" }}>
         <div style={{display:"inline-flex",alignItems:"center",gap:10,background:"rgba(167,139,250,0.08)",border:"1px solid rgba(167,139,250,0.2)",borderRadius:50,padding:"6px 18px",marginBottom:20}}>
             <span style={{fontSize:14}}>✦</span>
-            <span style={{fontSize:13,color:C.caramel,fontWeight:600,letterSpacing:"0.5px"}}>ЕГЭ · Русский язык · 2025</span>
+            <span style={{fontSize:13,color:C.caramel,fontWeight:600,letterSpacing:"0.5px"}}>ЕГЭ · Русский язык · 2027</span>
           </div>
         <h1 style={{ fontSize: 46, fontWeight: 800, margin: 0, letterSpacing: "-1.5px", lineHeight: 1.1, background: `linear-gradient(135deg,#e8d5ff 0%,${C.caramel} 40%,${C.accent2} 70%,#fda4af 100%)`, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
           <span style={{background:"linear-gradient(135deg,#c4b5fd,#a78bfa)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent"}}>Рус</span><span style={{background:"linear-gradient(135deg,#f0abfc,#fda4af)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent"}}>НеКусь</span>
