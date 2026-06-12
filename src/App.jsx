@@ -359,6 +359,71 @@ async function saveAccentScores(scores) {
 /* ═══════════════════════════════════════════
    ОБЩИЕ КОМПОНЕНТЫ
    ═══════════════════════════════════════════ */
+function AnimatedBg() {
+  const canvasRef = useRef(null);
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext("2d");
+    let w = canvas.width = window.innerWidth;
+    let h = canvas.height = window.innerHeight;
+    const resize = () => { w = canvas.width = window.innerWidth; h = canvas.height = window.innerHeight; };
+    window.addEventListener("resize", resize);
+    const blobs = Array.from({length: 6}, (_, i) => ({
+      x: Math.random() * w, y: Math.random() * h,
+      r: 180 + Math.random() * 140,
+      vx: (Math.random() - 0.5) * 0.4,
+      vy: (Math.random() - 0.5) * 0.4,
+      hue: [260, 280, 300, 320, 240, 270][i],
+    }));
+    const stars = Array.from({length: 80}, () => ({
+      x: Math.random() * 1920, y: Math.random() * 1080,
+      r: Math.random() * 1.2 + 0.2,
+      o: Math.random(),
+      speed: Math.random() * 0.008 + 0.003,
+      phase: Math.random() * Math.PI * 2,
+    }));
+    let frame = 0;
+    let raf;
+    const draw = () => {
+      ctx.clearRect(0, 0, w, h);
+      // blobs
+      blobs.forEach(b => {
+        b.x += b.vx; b.y += b.vy;
+        if (b.x < -b.r) b.x = w + b.r;
+        if (b.x > w + b.r) b.x = -b.r;
+        if (b.y < -b.r) b.y = h + b.r;
+        if (b.y > h + b.r) b.y = -b.r;
+        const g = ctx.createRadialGradient(b.x, b.y, 0, b.x, b.y, b.r);
+        g.addColorStop(0, `hsla(${b.hue},70%,65%,0.07)`);
+        g.addColorStop(1, `hsla(${b.hue},70%,65%,0)`);
+        ctx.beginPath();
+        ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2);
+        ctx.fillStyle = g;
+        ctx.fill();
+      });
+      // stars
+      stars.forEach(s => {
+        const opacity = 0.15 + 0.35 * Math.sin(frame * s.speed + s.phase);
+        ctx.beginPath();
+        ctx.arc(s.x % w, s.y % h, s.r, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(200,185,255,${opacity})`;
+        ctx.fill();
+      });
+      // grid lines
+      ctx.strokeStyle = "rgba(167,139,250,0.03)";
+      ctx.lineWidth = 1;
+      const gap = 60;
+      for (let x = 0; x < w; x += gap) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke(); }
+      for (let y = 0; y < h; y += gap) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke(); }
+      frame++;
+      raf = requestAnimationFrame(draw);
+    };
+    draw();
+    return () => { window.removeEventListener("resize", resize); cancelAnimationFrame(raf); };
+  }, []);
+  return <canvas ref={canvasRef} style={{position:"fixed",top:0,left:0,width:"100%",height:"100%",pointerEvents:"none",zIndex:0}}/>;
+}
+
 function Shell({ children }) {
   const globalCSS = `
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
@@ -384,13 +449,15 @@ function Shell({ children }) {
     ::-webkit-scrollbar-thumb { background: rgba(167,139,250,0.22); border-radius: 3px; }
   `;
   return (
-    <div style={{ minHeight: "100vh", background: C.bgGrad, fontFamily: fontBody, color: C.espresso }}>
+    <div style={{ minHeight: "100vh", background: C.bgGrad, fontFamily: fontBody, color: C.espresso, position: "relative" }}>
       <style>{globalCSS}</style>
-      {children}
+      <AnimatedBg />
+      <div style={{ position: "relative", zIndex: 1 }}>
+        {children}
+      </div>
     </div>
   );
 }
-
 function TopBar({ onBack, label, right }) {
   return (
     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 20px" }}>
