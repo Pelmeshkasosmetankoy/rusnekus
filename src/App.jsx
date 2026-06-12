@@ -363,65 +363,102 @@ function AnimatedBg() {
   const canvasRef = useRef(null);
   useEffect(() => {
     const canvas = canvasRef.current;
+    if (!canvas) return;
     const ctx = canvas.getContext("2d");
-    let w = canvas.width = window.innerWidth;
-    let h = canvas.height = window.innerHeight;
-    const resize = () => { w = canvas.width = window.innerWidth; h = canvas.height = window.innerHeight; };
-    window.addEventListener("resize", resize);
-    const blobs = Array.from({length: 6}, (_, i) => ({
-      x: Math.random() * w, y: Math.random() * h,
-      r: 250 + Math.random() * 200,
-      vx: (Math.random() - 0.5) * 0.4,
-      vy: (Math.random() - 0.5) * 0.4,
-      hue: [260, 280, 300, 320, 240, 270][i],
+    const setSize = () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    };
+    setSize();
+    window.addEventListener("resize", setSize);
+
+    const blobs = Array.from({ length: 6 }, (_, i) => ({
+      x: window.innerWidth * (0.1 + 0.15 * i),
+      y: window.innerHeight * (0.2 + 0.1 * i),
+      r: 280 + i * 40,
+      vx: (i % 2 === 0 ? 1 : -1) * (0.3 + i * 0.08),
+      vy: (i % 3 === 0 ? 1 : -1) * (0.2 + i * 0.06),
+      hue: [260, 280, 300, 320, 240, 200][i],
     }));
-    const stars = Array.from({length: 80}, () => ({
-      x: Math.random() * 1920, y: Math.random() * 1080,
-      r: Math.random() * 1.2 + 0.2,
-      o: Math.random(),
-      speed: Math.random() * 0.008 + 0.003,
+
+    const stars = Array.from({ length: 100 }, () => ({
+      x: Math.random() * window.innerWidth,
+      y: Math.random() * window.innerHeight,
+      r: Math.random() * 1.5 + 0.3,
       phase: Math.random() * Math.PI * 2,
+      speed: Math.random() * 0.01 + 0.005,
     }));
+
     let frame = 0;
     let raf;
+
     const draw = () => {
+      const w = canvas.width;
+      const h = canvas.height;
       ctx.clearRect(0, 0, w, h);
-      // blobs
+
+      // шары
       blobs.forEach(b => {
-        b.x += b.vx; b.y += b.vy;
+        b.x += b.vx;
+        b.y += b.vy;
         if (b.x < -b.r) b.x = w + b.r;
         if (b.x > w + b.r) b.x = -b.r;
         if (b.y < -b.r) b.y = h + b.r;
         if (b.y > h + b.r) b.y = -b.r;
         const g = ctx.createRadialGradient(b.x, b.y, 0, b.x, b.y, b.r);
-        g.addColorStop(0, `hsla(${b.hue},80%,70%,0.18)`);
-        g.addColorStop(1, `hsla(${b.hue},70%,65%,0)`);
+        g.addColorStop(0, `hsla(${b.hue},85%,70%,0.22)`);
+        g.addColorStop(0.5, `hsla(${b.hue},75%,60%,0.08)`);
+        g.addColorStop(1, `hsla(${b.hue},70%,60%,0)`);
         ctx.beginPath();
         ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2);
         ctx.fillStyle = g;
         ctx.fill();
       });
-      // stars
+
+      // звёзды
       stars.forEach(s => {
-        const opacity = 0.3 + 0.5 * Math.sin(frame * s.speed + s.phase);
+        const op = 0.35 + 0.5 * Math.sin(frame * s.speed + s.phase);
         ctx.beginPath();
-        ctx.arc(s.x % w, s.y % h, s.r, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(200,185,255,${opacity})`;
+        ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(210,190,255,${op})`;
         ctx.fill();
       });
-      // grid lines
+
+      // сетка
       ctx.strokeStyle = "rgba(167,139,250,0.06)";
       ctx.lineWidth = 1;
-      const gap = 60;
-      for (let x = 0; x < w; x += gap) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke(); }
-      for (let y = 0; y < h; y += gap) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke(); }
+      for (let x = 0; x < w; x += 60) {
+        ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke();
+      }
+      for (let y = 0; y < h; y += 60) {
+        ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke();
+      }
+
       frame++;
       raf = requestAnimationFrame(draw);
     };
-    draw();
-    return () => { window.removeEventListener("resize", resize); cancelAnimationFrame(raf); };
+
+    raf = requestAnimationFrame(draw);
+
+    return () => {
+      cancelAnimationFrame(raf);
+      window.removeEventListener("resize", setSize);
+    };
   }, []);
-  return <canvas ref={canvasRef} style={{position:"fixed",top:0,left:0,width:"100%",height:"100%",pointerEvents:"none",zIndex:0}}/>;
+
+  return (
+    <canvas
+      ref={canvasRef}
+      style={{
+        position: "fixed",
+        top: 0, left: 0,
+        width: "100%",
+        height: "100%",
+        pointerEvents: "none",
+        zIndex: 0,
+      }}
+    />
+  );
 }
 
 function Shell({ children }) {
