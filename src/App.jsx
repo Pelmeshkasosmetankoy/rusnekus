@@ -370,7 +370,7 @@ function AnimatedBg() {
     window.addEventListener("resize", resize);
     const blobs = Array.from({length: 6}, (_, i) => ({
       x: Math.random() * w, y: Math.random() * h,
-      r: 180 + Math.random() * 140,
+      r: 250 + Math.random() * 200,
       vx: (Math.random() - 0.5) * 0.4,
       vy: (Math.random() - 0.5) * 0.4,
       hue: [260, 280, 300, 320, 240, 270][i],
@@ -394,7 +394,7 @@ function AnimatedBg() {
         if (b.y < -b.r) b.y = h + b.r;
         if (b.y > h + b.r) b.y = -b.r;
         const g = ctx.createRadialGradient(b.x, b.y, 0, b.x, b.y, b.r);
-        g.addColorStop(0, `hsla(${b.hue},70%,65%,0.07)`);
+        g.addColorStop(0, `hsla(${b.hue},80%,70%,0.18)`);
         g.addColorStop(1, `hsla(${b.hue},70%,65%,0)`);
         ctx.beginPath();
         ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2);
@@ -403,14 +403,14 @@ function AnimatedBg() {
       });
       // stars
       stars.forEach(s => {
-        const opacity = 0.15 + 0.35 * Math.sin(frame * s.speed + s.phase);
+        const opacity = 0.3 + 0.5 * Math.sin(frame * s.speed + s.phase);
         ctx.beginPath();
         ctx.arc(s.x % w, s.y % h, s.r, 0, Math.PI * 2);
         ctx.fillStyle = `rgba(200,185,255,${opacity})`;
         ctx.fill();
       });
       // grid lines
-      ctx.strokeStyle = "rgba(167,139,250,0.03)";
+      ctx.strokeStyle = "rgba(167,139,250,0.06)";
       ctx.lineWidth = 1;
       const gap = 60;
       for (let x = 0; x < w; x += gap) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke(); }
