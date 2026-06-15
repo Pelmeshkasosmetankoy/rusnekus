@@ -707,6 +707,7 @@ function useRound(allItems, batchSize) {
   const [stats, setStats] = useState({ correct: 0, wrong: 0 });
   const [wrongItems, setWrongItems] = useState([]);
   const [finished, setFinished] = useState(false);
+  const [finished, setFinished] = useState(false);
 
   const record = (isCorrect, item) => {
     setStats((s) => ({ correct: s.correct + (isCorrect ? 1 : 0), wrong: s.wrong + (isCorrect ? 0 : 1) }));
@@ -2058,6 +2059,31 @@ function Q8({ item, onAnswer }) {
    ═══════════════════════════════════════════ */
 const QUESTION_COMPONENTS = { 1: Q1, 2: Q2, 3: Q3, 4: Q4, 5: Q5, 6: Q6, 7: Q7, 8: Q8 };
 
+function correctAnswerInfo(type, item) {
+  switch (type) {
+    case 1:
+      return `Нужно выбрать: ${item.correct.join(", ")}`;
+    case 2:
+      return item.correct ? "Характеристика верна." : `Характеристика неверна. ${item.explain}`;
+    case 3: {
+      const ok = item.statements.filter(s => s.correct).map(s => s.text);
+      return `Верные утверждения: ${ok.join(" / ")}`;
+    }
+    case 4:
+      return `Ударение: ${accentedWord(item)}`;
+    case 5:
+      return item.correct ? "Сочетание верное." : `Правильно: ${item.fix}`;
+    case 6:
+      return `Лишнее слово: «${item.words[item.remove]}»`;
+    case 7:
+      return `«${item.phrase[item.wrong]}» → «${item.answer}»`;
+    case 8:
+      return Object.entries(item.answer).map(([l, num]) => `${l} → №${num}`).join(", ");
+    default:
+      return "";
+  }
+}
+
 function CustomTestRunner({ config }) {
   const sequence = [];
   Object.keys(config).map(Number).sort((a, b) => a - b).forEach(type => {
@@ -2090,7 +2116,7 @@ function CustomTestRunner({ config }) {
     return (
       <Shell>
         <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}>
-          <div style={{ background: "rgba(255,255,255,0.05)", backdropFilter: "blur(24px)", border: `1px solid ${C.cardBorder}`, borderRadius: 24, padding: "44px 36px", maxWidth: 360, width: "100%", textAlign: "center", boxShadow: "0 30px 80px rgba(0,0,0,0.5)", animation: "pop 0.5s cubic-bezier(.4,0,.2,1)" }}>
+          <div style={{ background: "rgba(255,255,255,0.05)", backdropFilter: "blur(24px)", border: `1px solid ${C.cardBorder}`, borderRadius: 24, padding: "44px 36px", maxWidth: stats.wrong > 0 ? 480 : 360, width: "100%", textAlign: "center", boxShadow: "0 30px 80px rgba(0,0,0,0.5)", animation: "pop 0.5s cubic-bezier(.4,0,.2,1)" }}>
             <div style={{ fontSize: 56, marginBottom: 16 }}>{pct >= 80 ? "🌟" : pct >= 50 ? "💜" : "📚"}</div>
             <h2 style={{ fontSize: 24, fontWeight: 800, margin: "0 0 8px", background: `linear-gradient(135deg,${C.caramel},${C.accent2})`, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
               Тест завершён!
@@ -2106,6 +2132,22 @@ function CustomTestRunner({ config }) {
                 <div style={{ fontSize: 12, color: C.latte, marginTop: 2 }}>ошибок</div>
               </div>
             </div>
+            {wrongItems.length > 0 && (
+              <div style={{ marginBottom: 24, textAlign: "left" }}>
+                <p style={{ fontSize: 12, color: C.latte, fontWeight: 700, marginBottom: 10, textTransform: "uppercase", letterSpacing: "1px" }}>
+                  Разбор ошибок
+                </p>
+                <div style={{ display: "flex", flexDirection: "column", gap: 8, maxHeight: 340, overflowY: "auto" }}>
+                  {wrongItems.map((w, i) => (
+                    <div key={i} style={{ background: C.wrongBg, border: `1px solid ${C.wrong}40`, borderRadius: 10, padding: "10px 12px" }}>
+                      <p style={{ fontSize: 11, color: C.latte, margin: "0 0 4px", textTransform: "uppercase", letterSpacing: "0.5px" }}>Задание {w.type}</p>
+                      <p style={{ fontSize: 13, color: C.espresso, margin: "0 0 6px", lineHeight: 1.5 }}>{QUESTION_POOLS[w.type].preview(w.item)}</p>
+                      <p style={{ fontSize: 13, color: C.correct, margin: 0, lineHeight: 1.5 }}>{correctAnswerInfo(w.type, w.item)}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
             <button onClick={() => window.location.reload()}
               style={{ width: "100%", padding: "13px", borderRadius: 12, border: `1px solid ${C.cardBorder}`, background: "rgba(255,255,255,0.05)", color: C.espresso, fontSize: 14, fontWeight: 500, cursor: "pointer" }}>
               Пройти ещё раз
@@ -2119,8 +2161,9 @@ function CustomTestRunner({ config }) {
   const current = sequence[index];
   const Comp = QUESTION_COMPONENTS[current.type];
 
-  const handleAnswer = (ok) => {
+   const handleAnswer = (ok) => {
     setStats(s => ({ correct: s.correct + (ok ? 1 : 0), wrong: s.wrong + (ok ? 0 : 1) }));
+    if (!ok) setWrongItems(w => [...w, current]);
     if (index + 1 < sequence.length) setIndex(i => i + 1);
     else setFinished(true);
   };
