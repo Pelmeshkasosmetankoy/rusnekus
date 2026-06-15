@@ -940,7 +940,7 @@ function HomePage({ onNavigate }) {
     { id: 12, page: "task12", title: "Окончания глаголов и причастий", desc: "Найди строки с одинаковой буквой" },
     { id: 13, page: "task13", title: "НЕ и НИ", desc: "Верно ли написано слово?" },
     { id: 14, page: "task14", title: "Слитно / раздельно", desc: "Верно ли написано слово?" },
-    { id: "✨", page: "testbuilder", title: "Конструктор теста", desc: "Собери тест и пришли ссылку ученику" },
+    { id: "✨", page: "testbuilder", title: "Конструктор теста", desc: "Собери свой тест" },
   ];
 
   return (
