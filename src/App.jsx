@@ -720,9 +720,9 @@ function useRound(allItems, batchSize) {
 }
 
 /* Карточка-обёртка для содержимого задания */
-function TaskCard({ children }) {
+function TaskCard({ children, style = {} }) {
   return (
-    <div style={{ background: "rgba(255,255,255,0.045)", backdropFilter: "blur(20px)", border: `1px solid ${C.cardBorder}`, borderRadius: 20, padding: "28px 24px", boxShadow: "0 20px 60px rgba(0,0,0,0.4)", width: "100%", maxWidth: 500, animation: "fadeUp 0.4s ease" }}>
+    <div style={{ background: "rgba(255,255,255,0.045)", backdropFilter: "blur(20px)", border: `1px solid ${C.cardBorder}`, borderRadius: 20, padding: "28px 24px", boxShadow: "0 20px 60px rgba(0,0,0,0.4)", width: "100%", maxWidth: 500, animation: "fadeUp 0.4s ease", ...style }}>
       {children}
     </div>
   );
@@ -1394,7 +1394,144 @@ function Task7({ onBack }) {
     </Shell>
   );
 }
+/* ═══ ЗАДАНИЕ 8 — Грамматические нормы (соответствие) ═══ */
+function Task8({onBack}){
+  const round=useRound(GRAMMAR_SETS,GRAMMAR_SETS.length);
+  const [assign,setAssign]=useState({});
+  const [active,setActive]=useState(null);
+  const [showResult,setShowResult]=useState(false);
+  const [isCorrect,setIsCorrect]=useState(false);
+  const [reaction,setReaction]=useState("");
+  const t=useRef(null);
+  useEffect(()=>()=>{if(t.current)clearTimeout(t.current);},[]);
 
+  const cur=round.items[round.index];
+  if(round.finished) return <ResultScreen correct={round.stats.correct} wrong={round.stats.wrong} hasRetry={round.wrongItems.length>0} onRetry={round.retryWrong} onRestart={round.restart} onBack={onBack}/>;
+  if(!cur) return null;
+
+  const letters=cur.errors.map(e=>e.letter);
+  const currentActive = active && !(active in assign) ? active : (letters.find(l=>!(l in assign)) || letters[0]);
+
+  const pickLetter=(l)=>{ if(!showResult) setActive(l); };
+
+  const pickSentence=(num)=>{
+    if(showResult) return;
+    const next={...assign};
+    letters.forEach(l=>{ if(next[l]===num) delete next[l]; });
+    next[currentActive]=num;
+    setAssign(next);
+    const nextLetter=letters.find(l=>!(l in next));
+    setActive(nextLetter||currentActive);
+  };
+
+  const allFilled=letters.every(l=>l in assign);
+
+  const check=()=>{
+    let correct=0;
+    letters.forEach(l=>{ if(assign[l]===cur.answer[l]) correct++; });
+    const ok=correct===letters.length;
+    setIsCorrect(ok);
+    setShowResult(true);
+    setReaction(`${correct} из ${letters.length} верно. `+(ok?pick(CORRECT_REACTIONS):pick(WRONG_REACTIONS)));
+    round.record(ok,cur);
+    t.current=setTimeout(()=>{ setAssign({}); setActive(null); setShowResult(false); setReaction(""); round.next(); },4200);
+  };
+
+  const reverseAssign={};
+  Object.entries(assign).forEach(([l,num])=>{ reverseAssign[num]=l; });
+  const correctFor={};
+  Object.entries(cur.answer).forEach(([l,num])=>{ correctFor[num]=l; });
+
+  return(
+    <Shell>
+      <TopBar onBack={onBack} label="Задание 8 · Грамматические нормы" right={`${round.index+1}/${round.items.length}`}/>
+      <ProgressBar value={round.index/round.items.length*100}/>
+      <StatsRow correct={round.stats.correct} wrong={round.stats.wrong}/>
+      <div style={{display:"flex",flexDirection:"column",alignItems:"center",padding:"20px 20px 60px"}}>
+        <TaskCard style={{maxWidth:640}}>
+          <p style={{fontSize:13,color:C.latte,marginBottom:14,lineHeight:1.6}}>
+            Установите соответствие: для каждой ошибки найдите предложение, в котором она допущена. Выберите букву, затем нажмите на нужное предложение.
+          </p>
+
+          <div style={{display:"flex",flexDirection:"column",gap:6,marginBottom:18}}>
+            {cur.errors.map(e=>{
+              const num=assign[e.letter];
+              const isActive=currentActive===e.letter && !showResult;
+              let border=C.cardBorder, bg="rgba(255,255,255,0.02)";
+              if(isActive){border=C.caramelBorder; bg=C.caramelSoft;}
+              if(showResult){
+                const ok=assign[e.letter]===cur.answer[e.letter];
+                border=ok?`${C.correct}55`:`${C.wrong}55`;
+                bg=ok?C.correctBg:C.wrongBg;
+              }
+              return(
+                <button key={e.letter} onClick={()=>pickLetter(e.letter)} disabled={showResult}
+                  style={{display:"flex",alignItems:"center",gap:10,textAlign:"left",padding:"10px 12px",borderRadius:10,border:`2px solid ${border}`,background:bg,cursor:showResult?"default":"pointer"}}>
+                  <span style={{width:26,height:26,borderRadius:8,background:isActive?C.caramel:"rgba(255,255,255,0.06)",color:isActive?"#0d0f14":C.espresso,display:"flex",alignItems:"center",justifyContent:"center",fontWeight:700,fontSize:13,flexShrink:0}}>
+                    {e.letter}
+                  </span>
+                  <span style={{fontSize:13,color:C.espresso,flex:1,lineHeight:1.4}}>{e.text}</span>
+                  <span style={{fontSize:14,fontWeight:700,color:num?C.caramel:C.faint,minWidth:18,textAlign:"center"}}>
+                    {num||"—"}
+                  </span>
+                  {showResult&&(
+                    <span style={{fontSize:16}}>{assign[e.letter]===cur.answer[e.letter]?"✓":"✗"}</span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+
+          {showResult&&(
+            <div style={{marginBottom:14,fontSize:12,color:C.latte,background:"rgba(255,255,255,0.03)",borderRadius:8,padding:"8px 12px"}}>
+              {letters.filter(l=>assign[l]!==cur.answer[l]).map(l=>(
+                <div key={l}>Верно для <b style={{color:C.caramel}}>{l}</b>: предложение №{cur.answer[l]}</div>
+              ))}
+            </div>
+          )}
+
+          <div style={{display:"flex",flexDirection:"column",gap:6}}>
+            {cur.sentences.map(s=>{
+              const assignedLetter=reverseAssign[s.num];
+              const correctLetter=correctFor[s.num];
+              let border=C.cardBorder, bg="rgba(255,255,255,0.02)", badge=null;
+              if(!showResult){
+                if(assignedLetter){ border=C.caramelBorder; bg=C.caramelSoft; badge=assignedLetter; }
+              } else {
+                if(correctLetter){
+                  if(assignedLetter===correctLetter){ border=`${C.correct}55`; bg=C.correctBg; badge=`✓ ${correctLetter}`; }
+                  else { border=`${C.wrong}55`; bg=C.wrongBg; badge=`${correctLetter}`; }
+                } else if(assignedLetter){
+                  border=`${C.wrong}55`; bg=C.wrongBg; badge=`✗ ${assignedLetter}`;
+                }
+              }
+              return(
+                <button key={s.num} onClick={()=>pickSentence(s.num)} disabled={showResult}
+                  style={{display:"flex",alignItems:"flex-start",gap:10,textAlign:"left",padding:"10px 12px",borderRadius:10,border:`2px solid ${border}`,background:bg,cursor:showResult?"default":"pointer"}}>
+                  <span style={{fontWeight:700,color:C.latte,fontSize:13,flexShrink:0}}>{s.num})</span>
+                  <span style={{fontSize:13.5,color:C.espresso,lineHeight:1.5,flex:1}}>{s.text}</span>
+                  {badge&&(
+                    <span style={{fontSize:12,fontWeight:700,color:C.caramel,background:"rgba(255,255,255,0.06)",borderRadius:6,padding:"2px 8px",flexShrink:0}}>{badge}</span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+
+          {!showResult&&(
+            <button onClick={check} disabled={!allFilled}
+              style={{marginTop:18,width:"100%",padding:"14px",borderRadius:12,border:"none",background:allFilled?`linear-gradient(135deg,${C.caramel},${C.accent2})`:"rgba(255,255,255,0.05)",color:allFilled?"#0d0f14":C.latte,fontSize:15,fontWeight:700,cursor:allFilled?"pointer":"default",boxShadow:allFilled?`0 4px 20px ${C.accentGlow}`:"none"}}>
+              Проверить
+            </button>
+          )}
+          <ReactionBanner show={showResult} ok={isCorrect} text={reaction}/>
+         </TaskCard>
+      </div>
+    </Shell>
+  );
+}
+/* ═══════════════════════════════════════════
+   КОРНЕВОЙ КОМПОНЕНТ
 /* ═══════════════════════════════════════════
    КОРНЕВОЙ КОМПОНЕНТ
    ═══════════════════════════════════════════ */
