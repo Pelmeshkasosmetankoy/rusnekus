@@ -430,6 +430,93 @@ const GRAMMAR_SETS = [
   },
 ];
 
+const ROOT_ITEMS = [
+  {
+    rows: [
+      ["соб_рать", "зам_рать", "выт_рать"],
+      ["разл_жить", "пол_гать", "прил_гательное"],
+      ["д_ждливый", "м_лина", "к_рзина"],
+      ["к_саться", "прик_саться", "соприк_саться"],
+      ["р_стение", "выр_сший", "р_сток"],
+    ],
+    same: [true, false, false, true, false],
+  },
+  {
+    rows: [
+      ["выск_чить", "подск_чить", "наск_чить"],
+      ["обм_кнуть", "непром_каемый", "выр_внять"],
+      ["ср_внить", "ур_внение", "р_внозначный"],
+      ["в_новатый", "ч_совщик", "оч_рование"],
+      ["прин_мать", "разн_мать", "сж_мать"],
+    ],
+    same: [true, false, true, false, true],
+  },
+  {
+    rows: [
+      ["стр_миться", "ч_стотный", "разг_дать"],
+      ["р_сти", "нар_щение", "подр_стать"],
+      ["д_ректор", "к_рниз", "б_тон"],
+      ["выр_сли", "подр_сли", "р_сла"],
+      ["пож_леть", "д_рога", "б_седа"],
+    ],
+    same: [false, true, false, true, false],
+  },
+  {
+    rows: [
+      ["заг_релый", "приг_рать", "разг_реться"],
+      ["предл_жить", "сл_гаемое", "изл_гать"],
+      ["л_сной", "сн_жинка", "вр_мя"],
+      ["оп_раться", "выч_тание", "ч_сы"],
+      ["распол_гать", "к_сательная", "сл_гать"],
+    ],
+    same: [true, false, true, false, true],
+  },
+];
+
+const PREFIX_ITEMS = [
+  {
+    rows: [
+      ["бе_дарный", "ра_будить", "и_гнать"],
+      ["бе_конечный", "ра_толковать", "и_пугаться"],
+      ["пр_крыть", "пр_красный", "пр_город"],
+      ["с_грать", "пред_дущий", "меж_нститутский"],
+      ["под_езд", "раз_яренный", "сверх_естественный"],
+    ],
+    same: [true, true, false, false, true],
+  },
+  {
+    rows: [
+      ["пр_клеить", "пр_шить", "пр_ехать"],
+      ["пр_огромный", "пр_градить", "пр_рвать"],
+      ["пр_творить", "пр_емник", "бе_вкусный"],
+      ["ра_бросать", "во_буждение", "бе_дорожье"],
+      ["пр_клонить", "пр_клониться", "пр_быть"],
+    ],
+    same: [true, true, false, true, false],
+  },
+  {
+    rows: [
+      ["раз_грать", "под_тог", "пред_стория"],
+      ["и_пытание", "ра_ыскать", "меж_нститутский"],
+      ["ра_решить", "бе_вредный", "и_давна"],
+      ["пр_лечь", "пр_дать", "пр_открыть"],
+      ["об_явление", "необ_яснимый", "сверх_ёмкий"],
+    ],
+    same: [true, false, true, false, true],
+  },
+  {
+    rows: [
+      ["пр_морский", "пр_школьный", "пр_вокзальный"],
+      ["в_бежать", "на_писать", "_дать"],
+      ["ра_сказать", "бе_толковый", "во_становить"],
+      ["пр_неприятный", "пр_школьный", "пр_дорожный"],
+      ["от_скать", "под_тожить", "без_сходный"],
+    ],
+    same: [true, false, true, false, true],
+  },
+];
+
+
 /* ═══ УТИЛИТЫ ═══ */
 const VOWELS = "аеёиоуыэюя";
 function getVowelIndices(word) {
@@ -749,6 +836,8 @@ function HomePage({ onNavigate }) {
     { id: 6, page: "task6", title: "Лексические нормы", desc: "Найди лишнее слово" },
     { id: 7, page: "task7", title: "Морфологические нормы", desc: "Найди ошибку и исправь её" },
     { id: 8, page: "task8", title: "Грамматические нормы", desc: "Сопоставь ошибки и предложения" },
+    { id: 9, page: "task9", title: "Правописание корней", desc: "Найди строки с одинаковой буквой" },
+    { id: 10, page: "task10", title: "Правописание приставок", desc: "Найди строки с одинаковой буквой" },
     { id: "✨", page: "testbuilder", title: "Конструктор теста", desc: "Собери тест и пришли ссылку ученику" },
   ];
 
@@ -1649,6 +1738,8 @@ const QUESTION_POOLS = {
   6: { items: PLEONASM_ITEMS,  title: "Лексические нормы",     preview: (it) => it.words.join(" / ") },
   7: { items: MORPH_ITEMS,     title: "Морфологические нормы", preview: (it) => it.phrase.join(" ") },
   8: { items: GRAMMAR_SETS,    title: "Грамматические нормы",  preview: (it) => it.sentences[0].text.slice(0, 60) + "…" },
+  9: { items: ROOT_ITEMS,      title: "Правописание корней",   preview: (it) => it.rows.map(r => r.join("/")).join(" · ") },
+  10: { items: PREFIX_ITEMS,   title: "Правописание приставок", preview: (it) => it.rows.map(r => r.join("/")).join(" · ") },
 };
 
 /* ═══ Q1 — Части речи ═══ */
@@ -2056,7 +2147,10 @@ function Q8({ item, onAnswer }) {
 /* ═══════════════════════════════════════════
    ПРОХОЖДЕНИЕ ТЕСТА ПО ССЫЛКЕ
    ═══════════════════════════════════════════ */
-const QUESTION_COMPONENTS = { 1: Q1, 2: Q2, 3: Q3, 4: Q4, 5: Q5, 6: Q6, 7: Q7, 8: Q8 };
+const QUESTION_COMPONENTS = { 1: Q1, 2: Q2, 3: Q3, 4: Q4, 5: Q5, 6: Q6, 7: Q7, 8: Q8, 9: Q9, 10: Q10 };
+
+function Q9({ item, onAnswer }) { return <RowMatchCore item={item} onResult={onAnswer} />; }
+function Q10({ item, onAnswer }) { return <RowMatchCore item={item} onResult={onAnswer} />; }
 
 function correctAnswerInfo(type, item) {
   switch (type) {
@@ -2078,6 +2172,11 @@ function correctAnswerInfo(type, item) {
       return `«${item.phrase[item.wrong]}» → «${item.answer}»`;
     case 8:
       return Object.entries(item.answer).map(([l, num]) => `${l} → №${num}`).join(", ");
+    case 9:
+    case 10: {
+      const ok = item.same.map((s, i) => s ? i + 1 : null).filter(Boolean);
+      return `Одинаковая буква в строках: ${ok.join(", ")}`;
+    }
     default:
       return "";
   }
@@ -2274,6 +2373,102 @@ function TestBuilder({ onBack }) {
   );
 }
 
+/* ═══ ЗАДАНИЯ 9-10 — Правописание корней / приставок ═══ */
+function RowMatchCore({ item, onResult }) {
+  const [picked, setPicked] = useState([]);
+  const [showResult, setShowResult] = useState(false);
+  const [isCorrect, setIsCorrect] = useState(false);
+  const [reaction, setReaction] = useState("");
+
+  const toggle = (i) => { if (!showResult) setPicked(p => p.includes(i) ? p.filter(x => x !== i) : [...p, i]); };
+
+  const check = () => {
+    const correctIdx = item.same.map((s, i) => (s ? i : -1)).filter(i => i >= 0);
+    const ok = picked.length === correctIdx.length && picked.every(i => correctIdx.includes(i));
+    setIsCorrect(ok); setShowResult(true); setReaction(pick(ok ? CORRECT_REACTIONS : WRONG_REACTIONS));
+  };
+
+  return (
+    <TaskCard style={{ maxWidth: 560 }}>
+      <p style={{ fontSize: 13, color: C.latte, lineHeight: 1.6, marginBottom: 16 }}>
+        Укажи номера строк, в которых во всех словах на месте пропуска пишется одна и та же буква. В каждой строке может быть своя буква, но во всех трёх словах строки — одинаковая.
+      </p>
+      <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+        {item.rows.map((row, i) => {
+          const sel = picked.includes(i);
+          let bg = sel ? C.caramelSoft : C.card, border = sel ? C.caramel : C.cardBorder, color = C.espresso;
+          if (showResult) {
+            if (item.same[i]) { bg = C.correctBg; border = C.correct; color = C.correct; }
+            else if (sel) { bg = C.wrongBg; border = C.wrong; color = C.wrong; }
+          }
+          return (
+            <button key={i} onClick={() => toggle(i)}
+              style={{ textAlign: "left", padding: "12px 14px", borderRadius: 10, border: `2px solid ${border}`, background: bg, color, fontSize: 15, lineHeight: 1.6, cursor: showResult ? "default" : "pointer", transition: "all 0.15s" }}>
+              <b style={{ marginRight: 8 }}>{i + 1})</b>
+              {row.map((w, j) => {
+                const parts = w.split("_");
+                return (
+                  <span key={j}>
+                    {parts[0]}<b style={{ color: C.caramel }}>_</b>{parts[1]}
+                    {j < row.length - 1 ? ", " : ""}
+                  </span>
+                );
+              })}
+            </button>
+          );
+        })}
+      </div>
+      {!showResult ? (
+        <button onClick={check} disabled={picked.length === 0}
+          style={{ marginTop: 18, width: "100%", padding: "13px", borderRadius: 11, border: "none", background: picked.length ? `linear-gradient(135deg, ${C.caramel}, ${C.accent2})` : "rgba(255,255,255,0.04)", color: picked.length ? "#0d0f14" : C.latte, fontSize: 15, fontWeight: 700, cursor: picked.length ? "pointer" : "default", boxShadow: picked.length ? `0 4px 20px ${C.accentGlow}` : "none" }}>
+          Проверить
+        </button>
+      ) : (
+        <NextButton onClick={() => onResult(isCorrect)} />
+      )}
+      <Reaction show={showResult} isCorrect={isCorrect} text={reaction} />
+    </TaskCard>
+  );
+}
+
+function Task9({ onBack }) {
+  const round = useRound(ROOT_ITEMS, ROOT_ITEMS.length);
+  const current = round.items[round.index];
+  if (round.finished) return <ResultScreen correct={round.stats.correct} wrong={round.stats.wrong} hasRetry={round.wrongItems.length > 0} onRetry={round.retryWrong} onRestart={round.restart} onBack={onBack} />;
+  if (!current) return null;
+  const handleResult = (ok) => { round.record(ok, current); round.next(); };
+  return (
+    <Shell>
+      <TopBar onBack={onBack} label="Задание 9 · Правописание корней" right={`${round.index + 1}/${round.items.length}`} />
+      <ProgressBar value={(round.index / round.items.length) * 100} />
+      <StatsRow correct={round.stats.correct} wrong={round.stats.wrong} />
+      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", padding: "20px 20px 60px" }}>
+        <RowMatchCore key={round.index} item={current} onResult={handleResult} />
+      </div>
+    </Shell>
+  );
+}
+
+function Task10({ onBack }) {
+  const round = useRound(PREFIX_ITEMS, PREFIX_ITEMS.length);
+  const current = round.items[round.index];
+  if (round.finished) return <ResultScreen correct={round.stats.correct} wrong={round.stats.wrong} hasRetry={round.wrongItems.length > 0} onRetry={round.retryWrong} onRestart={round.restart} onBack={onBack} />;
+  if (!current) return null;
+  const handleResult = (ok) => { round.record(ok, current); round.next(); };
+  return (
+    <Shell>
+      <TopBar onBack={onBack} label="Задание 10 · Правописание приставок" right={`${round.index + 1}/${round.items.length}`} />
+      <ProgressBar value={(round.index / round.items.length) * 100} />
+      <StatsRow correct={round.stats.correct} wrong={round.stats.wrong} />
+      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", padding: "20px 20px 60px" }}>
+        <RowMatchCore key={round.index} item={current} onResult={handleResult} />
+      </div>
+    </Shell>
+  );
+}
+
+export default function App() {
+
 export default function App() {
   const [page, setPage] = useState("home");
   const goHome = () => setPage("home");
@@ -2300,6 +2495,8 @@ export default function App() {
       {page === "task7" && <Task7 onBack={goHome} />}
       {page === "task8" && <Task8 onBack={goHome} />}
       {page === "testbuilder" && <TestBuilder onBack={goHome} />}
+      {page === "task9" && <Task9 onBack={goHome} />}
+      {page === "task10" && <Task10 onBack={goHome} />}
     </PasswordGate>
   );
 }
