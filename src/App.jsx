@@ -2095,8 +2095,8 @@ function CustomTestRunner({ config }) {
 
   const [index, setIndex] = useState(0);
   const [stats, setStats] = useState({ correct: 0, wrong: 0 });
+  const [wrongItems, setWrongItems] = useState([]);
   const [finished, setFinished] = useState(false);
-
   if (sequence.length === 0) {
     return (
       <Shell>
