@@ -740,6 +740,7 @@ function HomePage({ onNavigate }) {
     { id: 5, page: "task5", title: "Паронимы", desc: "Правильное ли словосочетание?" },
     { id: 6, page: "task6", title: "Лексические нормы", desc: "Найди лишнее слово" },
     { id: 7, page: "task7", title: "Морфологические нормы", desc: "Найди ошибку и исправь её" },
+    { id: 8, page: "task8", title: "Грамматические нормы", desc: "Сопоставь ошибки и предложения" },
   ];
 
   return (
@@ -1550,6 +1551,7 @@ export default function App() {
       {page === "task5" && <Task5 onBack={goHome} />}
       {page === "task6" && <Task6 onBack={goHome} />}
       {page === "task7" && <Task7 onBack={goHome} />}
+      {page === "task8" && <Task8 onBack={goHome} />}
     </>
   );
 }
