@@ -539,7 +539,38 @@ const VERB_ITEMS = [
     same: [false, true, false, true, false],
   },
 ];
+const NEGATION_ITEMS = [
+  { phrase: "Я не знал об этом.", correct: true, fix: "" },
+  { phrase: "Я ненавидел эту работу.", correct: true, fix: "" },
+  { phrase: "Я не навидел эту работу.", correct: false, fix: "ненавидел (глагол-исключение, пишется слитно)" },
+  { phrase: "Фильм оказался не интересным, а скучным.", correct: true, fix: "" },
+  { phrase: "Фильм оказался неинтересным.", correct: true, fix: "" },
+  { phrase: "Фильм оказался не интересным.", correct: false, fix: "неинтересным (нет противопоставления — слитно)" },
+  { phrase: "Как ни старался, он не успел.", correct: true, fix: "" },
+  { phrase: "Как не старался, он не успел.", correct: false, fix: "ни старался (усилительное «ни» в уступительном обороте)" },
+  { phrase: "Никто не пришёл на собрание.", correct: true, fix: "" },
+  { phrase: "Ни у кого не было ответа.", correct: true, fix: "" },
+  { phrase: "Не кто не пришёл на собрание.", correct: false, fix: "Никто (отрицательное местоимение без предлога — слитно)" },
+  { phrase: "Работа не выполнена в срок.", correct: true, fix: "" },
+  { phrase: "Работа невыполнена в срок.", correct: false, fix: "не выполнена (краткое причастие — всегда раздельно)" },
+  { phrase: "Не прочитанная мной книга лежала на столе.", correct: true, fix: "" },
+  { phrase: "Непрочитанная книга лежала на столе.", correct: true, fix: "" },
+];
 
+const SPELLING14_ITEMS = [
+  { phrase: "Чтобы успеть на поезд, мы вышли пораньше.", correct: true, fix: "" },
+  { phrase: "Что бы мне подарить ей на день рождения?", correct: true, fix: "" },
+  { phrase: "Что бы успеть, нужно поторопиться.", correct: false, fix: "Чтобы (союз цели — слитно)" },
+  { phrase: "Брат тоже пришёл на встречу, а также его друзья.", correct: true, fix: "" },
+  { phrase: "Я сделал так же, как и ты.", correct: true, fix: "" },
+  { phrase: "Он также, как и я, посмотрел этот фильм.", correct: false, fix: "так же (наречие образа действия — раздельно)" },
+  { phrase: "Дождь лил всю ночь, оттого дороги размыло.", correct: true, fix: "" },
+  { phrase: "От того дома до реки рукой подать.", correct: true, fix: "" },
+  { phrase: "Несмотря на усталость, она продолжала работать.", correct: true, fix: "" },
+  { phrase: "Не смотря на усталость, она продолжала работать.", correct: false, fix: "Несмотря на (предлог уступки — слитно)" },
+  { phrase: "Вследствие урагана многие деревья упали.", correct: true, fix: "" },
+  { phrase: "В следствии по уголовному делу появились новые свидетели.", correct: true, fix: "" },
+];
 const PREFIX_ITEMS = [
   {
     rows: [
@@ -907,6 +938,8 @@ function HomePage({ onNavigate }) {
     { id: 10, page: "task10", title: "Правописание приставок", desc: "Найди строки с одинаковой буквой" },
     { id: 11, page: "task11", title: "Суффиксы", desc: "Найди строки с одинаковой буквой" },
     { id: 12, page: "task12", title: "Окончания глаголов и причастий", desc: "Найди строки с одинаковой буквой" },
+    { id: 13, page: "task13", title: "НЕ и НИ", desc: "Верно ли написано слово?" },
+    { id: 14, page: "task14", title: "Слитно / раздельно", desc: "Верно ли написано слово?" },
     { id: "✨", page: "testbuilder", title: "Конструктор теста", desc: "Собери тест и пришли ссылку ученику" },
   ];
 
@@ -2573,6 +2606,77 @@ function Task12({ onBack }) {
   );
 }
 
+/* ═══ ЗАДАНИЯ 13-14 — НЕ/НИ и слитно/раздельно ═══ */
+function VerdictCore({ item, onResult, prompt }) {
+  const [showResult, setShowResult] = useState(false);
+  const [isCorrect, setIsCorrect] = useState(false);
+  const answer = (val) => { const ok = val === item.correct; setIsCorrect(ok); setShowResult(true); };
+  return (
+    <TaskCard style={{ textAlign: "center" }}>
+      <p style={{ fontSize: 13, color: C.latte, margin: "0 0 14px" }}>{prompt}</p>
+      <p style={{ fontSize: 17, fontWeight: 600, color: C.espresso, margin: "0 0 28px", lineHeight: 1.6 }}>{item.phrase}</p>
+      <div style={{ display: "flex", gap: 10 }}>
+        <button onClick={() => answer(true)} disabled={showResult}
+          style={{ flex: 1, padding: "13px", borderRadius: 11, border: `2px solid ${C.correct}`, background: showResult && item.correct ? C.correctBg : C.card, color: C.correct, fontSize: 15, fontWeight: 600, cursor: showResult ? "default" : "pointer" }}>
+          Верно
+        </button>
+        <button onClick={() => answer(false)} disabled={showResult}
+          style={{ flex: 1, padding: "13px", borderRadius: 11, border: `2px solid ${C.wrong}`, background: showResult && !item.correct ? C.wrongBg : C.card, color: C.wrong, fontSize: 15, fontWeight: 600, cursor: showResult ? "default" : "pointer" }}>
+          Неверно
+        </button>
+      </div>
+      {showResult && (
+        <div style={{ marginTop: 18, textAlign: "center", animation: "fadeIn 0.3s ease" }}>
+          <span style={{ fontSize: 14, color: isCorrect ? C.correct : C.wrong, fontWeight: 600 }}>
+            {isCorrect ? pick(CORRECT_REACTIONS) : pick(WRONG_REACTIONS)}
+          </span>
+          {!item.correct && (
+            <p style={{ fontSize: 14, color: C.mocha, margin: "10px 0 0", background: C.correctBg, padding: "10px 14px", borderRadius: 10 }}>
+              Правильно: <b style={{ color: C.correct }}>{item.fix}</b>
+            </p>
+          )}
+        </div>
+      )}
+      {showResult && <NextButton onClick={() => onResult(isCorrect)} />}
+    </TaskCard>
+  );
+}
+
+function Task13({ onBack }) {
+  const round = useRound(NEGATION_ITEMS, NEGATION_ITEMS.length);
+  const current = round.items[round.index];
+  if (round.finished) return <ResultScreen correct={round.stats.correct} wrong={round.stats.wrong} hasRetry={round.wrongItems.length > 0} onRetry={round.retryWrong} onRestart={round.restart} onBack={onBack} />;
+  if (!current) return null;
+  const handleResult = (ok) => { round.record(ok, current); round.next(); };
+  return (
+    <Shell>
+      <TopBar onBack={onBack} label="Задание 13 · НЕ и НИ" right={`${round.index + 1}/${round.items.length}`} />
+      <ProgressBar value={(round.index / round.items.length) * 100} />
+      <StatsRow correct={round.stats.correct} wrong={round.stats.wrong} />
+      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", padding: "20px 20px 60px" }}>
+        <VerdictCore key={round.index} item={current} onResult={handleResult} prompt="Слово(-сочетание) написано правильно?" />
+      </div>
+    </Shell>
+  );
+}
+
+function Task14({ onBack }) {
+  const round = useRound(SPELLING14_ITEMS, SPELLING14_ITEMS.length);
+  const current = round.items[round.index];
+  if (round.finished) return <ResultScreen correct={round.stats.correct} wrong={round.stats.wrong} hasRetry={round.wrongItems.length > 0} onRetry={round.retryWrong} onRestart={round.restart} onBack={onBack} />;
+  if (!current) return null;
+  const handleResult = (ok) => { round.record(ok, current); round.next(); };
+  return (
+    <Shell>
+      <TopBar onBack={onBack} label="Задание 14 · Слитно / раздельно" right={`${round.index + 1}/${round.items.length}`} />
+      <ProgressBar value={(round.index / round.items.length) * 100} />
+      <StatsRow correct={round.stats.correct} wrong={round.stats.wrong} />
+      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", padding: "20px 20px 60px" }}>
+        <VerdictCore key={round.index} item={current} onResult={handleResult} prompt="Выделенное слово написано правильно?" />
+      </div>
+    </Shell>
+  );
+}
 
 export default function App() {
   const [page, setPage] = useState("home");
@@ -2604,6 +2708,8 @@ export default function App() {
       {page === "task10" && <Task10 onBack={goHome} />}
       {page === "task11" && <Task11 onBack={goHome} />}
       {page === "task12" && <Task12 onBack={goHome} />}
+      {page === "task13" && <Task13 onBack={goHome} />}
+      {page === "task14" && <Task14 onBack={goHome} />}
     </PasswordGate>
   );
 }
