@@ -653,6 +653,14 @@ function Reaction({ show, isCorrect, text }) {
   );
 }
 
+function NextButton({ onClick, style = {} }) {
+  return (
+    <button onClick={onClick} style={{ marginTop: 8, width: "100%", maxWidth: 320, padding: "13px", borderRadius: 11, border: "none", background: `linear-gradient(135deg, ${C.caramel}, ${C.accent2})`, color: "#0d0f14", fontSize: 15, fontWeight: 700, cursor: "pointer", boxShadow: `0 4px 20px ${C.accentGlow}`, animation: "fadeIn 0.3s ease", ...style }}>
+      Дальше →
+    </button>
+  );
+}
+
 function ResultScreen({ correct, wrong, hasRetry, onRetry, onRestart, onBack }) {
   const total = correct + wrong;
   const pct = total ? Math.round((correct / total) * 100) : 0;
@@ -854,9 +862,9 @@ function Task4({ onBack, onTheory }) {
     s[current.word] = ok ? Math.max(0, prev - 1) : prev + 1;
     saveAccentScores(s);
 
-    timerRef.current = setTimeout(() => {
-      setSelected(null); setShowResult(false); round.next();
-    }, 1500);
+};
+  const goNext = () => {
+    setSelected(null); setShowResult(false); setReaction(""); round.next();
   };
 
   return (
@@ -897,6 +905,7 @@ function Task4({ onBack, onTheory }) {
           })}
         </div>
         <Reaction show={showResult} isCorrect={isCorrect} text={reaction} />
+        {showResult && <NextButton onClick={goNext} />}
         <button onClick={onTheory} style={{ marginTop: 24, background: "none", border: `1px dashed ${C.caramelBorder}`, color: C.mocha, borderRadius: 10, padding: "8px 16px", fontSize: 13, cursor: "pointer" }}>
           📖 Открыть теорию (словник)
         </button>
@@ -998,15 +1007,15 @@ function Task1({ onBack }) {
     setPicked((p) => (p.includes(w) ? p.filter((x) => x !== w) : [...p, w]));
   };
 
-  const check = () => {
+const check = () => {
     const ok = picked.length === current.correct.length && picked.every((w) => current.correct.includes(w));
     setIsCorrect(ok);
     setShowResult(true);
     setReaction(pick(ok ? CORRECT_REACTIONS : WRONG_REACTIONS));
     round.record(ok, current);
-    timerRef.current = setTimeout(() => {
-      setPicked([]); setShowResult(false); round.next();
-    }, 2200);
+  };
+  const goNext = () => {
+    setPicked([]); setShowResult(false); setReaction(""); round.next();
   };
 
   return (
@@ -1036,11 +1045,13 @@ function Task1({ onBack }) {
               );
             })}
           </div>
-          {!showResult && (
+{!showResult ? (
             <button onClick={check} disabled={picked.length === 0}
               style={{ marginTop: 20, width: "100%", padding: "13px", borderRadius: 11, border: "none", background: picked.length ? `linear-gradient(135deg, ${C.caramel}, ${C.accent2})` : "rgba(255,255,255,0.04)", color: picked.length ? "#0d0f14" : C.latte, fontSize: 15, fontWeight: 700, cursor: picked.length ? "pointer" : "default", boxShadow: picked.length ? `0 4px 20px ${C.accentGlow}` : "none" }}>
               Проверить
             </button>
+          ) : (
+            <NextButton onClick={goNext} />
           )}
         </TaskCard>
         <Reaction show={showResult} isCorrect={isCorrect} text={reaction} />
@@ -1048,6 +1059,8 @@ function Task1({ onBack }) {
     </Shell>
   );
 }
+
+
 
 /* ═══════════════════════════════════════════
    ЗАДАНИЕ 2 — Лексическое значение (верно/неверно)
@@ -1064,14 +1077,16 @@ function Task2({ onBack }) {
   if (round.finished) return <ResultScreen correct={round.stats.correct} wrong={round.stats.wrong} hasRetry={round.wrongItems.length > 0} onRetry={round.retryWrong} onRestart={round.restart} onBack={onBack} />;
   if (!current) return null;
 
-  const answer = (val) => {
+const answer = (val) => {
     if (showResult) return;
     const ok = val === current.correct;
     setIsCorrect(ok);
     setShowResult(true);
     setReaction(ok ? pick(CORRECT_REACTIONS) : current.explain);
     round.record(ok, current);
-    timerRef.current = setTimeout(() => { setShowResult(false); round.next(); }, ok ? 1400 : 3200);
+  };
+  const goNext = () => {
+    setShowResult(false); setReaction(""); round.next();
   };
 
   return (
@@ -1090,11 +1105,12 @@ function Task2({ onBack }) {
               style={{ flex: 1, padding: "13px", borderRadius: 11, border: `2px solid ${C.correct}`, background: showResult && current.correct ? C.correctBg : C.card, color: C.correct, fontSize: 15, fontWeight: 600, cursor: showResult ? "default" : "pointer" }}>
               Верно
             </button>
-            <button onClick={() => answer(false)} disabled={showResult}
+<button onClick={() => answer(false)} disabled={showResult}
               style={{ flex: 1, padding: "13px", borderRadius: 11, border: `2px solid ${C.wrong}`, background: showResult && !current.correct ? C.wrongBg : C.card, color: C.wrong, fontSize: 15, fontWeight: 600, cursor: showResult ? "default" : "pointer" }}>
               Неверно
             </button>
           </div>
+          {showResult && <NextButton onClick={goNext} />}
         </TaskCard>
         <Reaction show={showResult} isCorrect={isCorrect} text={reaction} />
       </div>
@@ -1122,14 +1138,16 @@ function Task3({ onBack }) {
     if (showResult) return;
     setPicked((p) => (p.includes(i) ? p.filter((x) => x !== i) : [...p, i]));
   };
-  const check = () => {
+const check = () => {
     const correctIdx = current.statements.map((s, i) => (s.correct ? i : -1)).filter((i) => i >= 0);
     const ok = picked.length === correctIdx.length && picked.every((i) => correctIdx.includes(i));
     setIsCorrect(ok);
     setShowResult(true);
     setReaction(pick(ok ? CORRECT_REACTIONS : WRONG_REACTIONS));
     round.record(ok, current);
-    timerRef.current = setTimeout(() => { setPicked([]); setShowResult(false); round.next(); }, 2600);
+  };
+  const goNext = () => {
+    setPicked([]); setShowResult(false); setReaction(""); round.next();
   };
 
   return (
@@ -1161,11 +1179,13 @@ function Task3({ onBack }) {
               );
             })}
           </div>
-          {!showResult && (
+         {!showResult ? (
             <button onClick={check} disabled={picked.length === 0}
               style={{ marginTop: 18, width: "100%", padding: "13px", borderRadius: 11, border: "none", background: picked.length ? `linear-gradient(135deg, ${C.caramel}, ${C.accent2})` : "rgba(255,255,255,0.04)", color: picked.length ? "#0d0f14" : C.latte, fontSize: 15, fontWeight: 700, cursor: picked.length ? "pointer" : "default", boxShadow: picked.length ? `0 4px 20px ${C.accentGlow}` : "none" }}>
               Проверить
             </button>
+          ) : (
+            <NextButton onClick={goNext} />
           )}
         </TaskCard>
         <Reaction show={showResult} isCorrect={isCorrect} text={reaction} />
@@ -1173,6 +1193,7 @@ function Task3({ onBack }) {
     </Shell>
   );
 }
+
 
 /* ═══════════════════════════════════════════
    ЗАДАНИЕ 5 — Паронимы (верно/неверно + показ исправления)
@@ -1188,13 +1209,15 @@ function Task5({ onBack }) {
   if (round.finished) return <ResultScreen correct={round.stats.correct} wrong={round.stats.wrong} hasRetry={round.wrongItems.length > 0} onRetry={round.retryWrong} onRestart={round.restart} onBack={onBack} />;
   if (!current) return null;
 
-  const answer = (val) => {
+const answer = (val) => {
     if (showResult) return;
     const ok = val === current.correct;
     setIsCorrect(ok);
     setShowResult(true);
     round.record(ok, current);
-    timerRef.current = setTimeout(() => { setShowResult(false); round.next(); }, current.correct ? 1400 : 2400);
+  };
+  const goNext = () => {
+    setShowResult(false); round.next();
   };
 
   return (
@@ -1223,13 +1246,14 @@ function Task5({ onBack }) {
               <span style={{ fontSize: 14, color: isCorrect ? C.correct : C.wrong, fontWeight: 600 }}>
                 {isCorrect ? pick(CORRECT_REACTIONS) : pick(WRONG_REACTIONS)}
               </span>
-              {!current.correct && (
+               {!current.correct && (
                 <p style={{ fontSize: 14, color: C.mocha, margin: "10px 0 0", background: C.correctBg, padding: "10px 14px", borderRadius: 10 }}>
                   Правильно: <b style={{ color: C.correct }}>{current.fix}</b>
                 </p>
               )}
             </div>
           )}
+          {showResult && <NextButton onClick={goNext} />}
         </TaskCard>
       </div>
     </Shell>
@@ -1260,7 +1284,9 @@ function Task6({ onBack }) {
     setShowResult(true);
     setReaction(pick(ok ? CORRECT_REACTIONS : WRONG_REACTIONS));
     round.record(ok, current);
-    timerRef.current = setTimeout(() => { setSelected(null); setShowResult(false); round.next(); }, 1700);
+    };
+  const goNext = () => {
+    setSelected(null); setShowResult(false); setReaction(""); round.next();
   };
 
   return (
@@ -1292,12 +1318,16 @@ function Task6({ onBack }) {
               );
             })}
           </div>
+          {showResult && <NextButton onClick={goNext} />}
         </TaskCard>
         <Reaction show={showResult} isCorrect={isCorrect} text={reaction} />
       </div>
     </Shell>
   );
 }
+
+
+
 
 /* ═══════════════════════════════════════════
    ЗАДАНИЕ 7 — Морфологические нормы (нажми + исправь)
@@ -1336,9 +1366,9 @@ function Task7({ onBack }) {
     setPhase("result");
     setReaction(ok ? pick(CORRECT_REACTIONS) : `Правильно: ${current.answer} 💛`);
     round.record(ok, current);
-    timerRef.current = setTimeout(() => {
-      setSelected(null); setInput(""); setPhase("pick"); setReaction(""); round.next();
-    }, ok ? 1500 : 2800);
+    };
+  const goNext = () => {
+    setSelected(null); setInput(""); setPhase("pick"); setReaction(""); round.next();
   };
 
   return (
@@ -1383,12 +1413,13 @@ function Task7({ onBack }) {
                 placeholder="правильная форма…"
                 style={{ flex: 1, padding: "12px 16px", borderRadius: 11, border: `2px solid ${C.caramelBorder}`, background: "rgba(167,139,250,0.06)", fontSize: 16, color: C.espresso, outline: "none", boxShadow: `0 0 20px ${C.accentGlow}` }}
               />
-              <button onClick={checkAnswer} disabled={!input.trim()}
+               <button onClick={checkAnswer} disabled={!input.trim()}
                 style={{ padding: "12px 22px", borderRadius: 11, border: "none", background: input.trim() ? `linear-gradient(135deg, ${C.caramel}, ${C.accent2})` : C.cream, color: input.trim() ? "#fff" : C.latte, fontSize: 15, fontWeight: 600, cursor: input.trim() ? "pointer" : "default" }}>
                 ОК
               </button>
             </div>
           )}
+          {phase === "result" && <NextButton onClick={goNext} />}
         </TaskCard>
         <Reaction show={!!reaction} isCorrect={isCorrect} text={reaction} />
       </div>
@@ -1411,7 +1442,7 @@ function Task8({onBack}){
   if(!cur) return null;
 
   const letters=cur.errors.map(e=>e.letter);
-  const currentActive = active && !(active in assign) ? active : (letters.find(l=>!(l in assign)) || letters[0]);
+  const currentActive = active || letters.find(l=>!(l in assign)) || letters[0];
 
   const pickLetter=(l)=>{ if(!showResult) setActive(l); };
 
@@ -1434,8 +1465,10 @@ function Task8({onBack}){
     setIsCorrect(ok);
     setShowResult(true);
     setReaction(`${correct} из ${letters.length} верно. `+(ok?pick(CORRECT_REACTIONS):pick(WRONG_REACTIONS)));
-    round.record(ok,cur);
-    t.current=setTimeout(()=>{ setAssign({}); setActive(null); setShowResult(false); setReaction(""); round.next(); },4200);
+   round.record(ok,cur);
+  };
+  const goNext=()=>{
+    setAssign({}); setActive(null); setShowResult(false); setReaction(""); round.next();
   };
 
   const reverseAssign={};
@@ -1519,13 +1552,15 @@ function Task8({onBack}){
             })}
           </div>
 
-          {!showResult&&(
+         {!showResult?(
             <button onClick={check} disabled={!allFilled}
               style={{marginTop:18,width:"100%",padding:"14px",borderRadius:12,border:"none",background:allFilled?`linear-gradient(135deg,${C.caramel},${C.accent2})`:"rgba(255,255,255,0.05)",color:allFilled?"#0d0f14":C.latte,fontSize:15,fontWeight:700,cursor:allFilled?"pointer":"default",boxShadow:allFilled?`0 4px 20px ${C.accentGlow}`:"none"}}>
               Проверить
             </button>
+          ):(
+            <NextButton onClick={goNext} />
           )}
-          <Reaction show={showResult} isCorrect={isCorrect} text={reaction} />
+          <Reaction show={showResult} isCorrect={isCorrect} text={reaction}/>
          </TaskCard>
       </div>
     </Shell>
