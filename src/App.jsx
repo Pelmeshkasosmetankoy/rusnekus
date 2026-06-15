@@ -2467,7 +2467,6 @@ function Task10({ onBack }) {
   );
 }
 
-export default function App() {
 
 export default function App() {
   const [page, setPage] = useState("home");
