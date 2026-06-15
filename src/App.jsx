@@ -1525,14 +1525,13 @@ function Task8({onBack}){
               Проверить
             </button>
           )}
-          <ReactionBanner show={showResult} ok={isCorrect} text={reaction}/>
+          <Reaction show={showResult} isCorrect={isCorrect} text={reaction} />
          </TaskCard>
       </div>
     </Shell>
   );
 }
-/* ═══════════════════════════════════════════
-   КОРНЕВОЙ КОМПОНЕНТ
+
 /* ═══════════════════════════════════════════
    КОРНЕВОЙ КОМПОНЕНТ
    ═══════════════════════════════════════════ */
