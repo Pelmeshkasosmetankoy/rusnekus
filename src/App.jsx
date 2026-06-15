@@ -707,7 +707,6 @@ function useRound(allItems, batchSize) {
   const [stats, setStats] = useState({ correct: 0, wrong: 0 });
   const [wrongItems, setWrongItems] = useState([]);
   const [finished, setFinished] = useState(false);
-  const [finished, setFinished] = useState(false);
 
   const record = (isCorrect, item) => {
     setStats((s) => ({ correct: s.correct + (isCorrect ? 1 : 0), wrong: s.wrong + (isCorrect ? 0 : 1) }));
