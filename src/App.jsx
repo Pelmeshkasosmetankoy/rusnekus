@@ -749,6 +749,7 @@ function HomePage({ onNavigate }) {
     { id: 6, page: "task6", title: "Лексические нормы", desc: "Найди лишнее слово" },
     { id: 7, page: "task7", title: "Морфологические нормы", desc: "Найди ошибку и исправь её" },
     { id: 8, page: "task8", title: "Грамматические нормы", desc: "Сопоставь ошибки и предложения" },
+    { id: "✨", page: "testbuilder", title: "Конструктор теста", desc: "Собери тест и пришли ссылку ученику" },
   ];
 
   return (
@@ -1636,10 +1637,613 @@ function PasswordGate({ children }) {
     </Shell>
   );
 }
+/* ═══════════════════════════════════════════
+   КОНСТРУКТОР ТЕСТА — общие данные
+   ═══════════════════════════════════════════ */
+const QUESTION_POOLS = {
+  1: { items: POS_ITEMS,      title: "Части речи",            preview: (it) => it.q },
+  2: { items: LEX_ITEMS,       title: "Лексическое значение",  preview: (it) => it.sentence },
+  3: { items: TEXT_ITEMS,      title: "Анализ текста",         preview: (it) => it.text.slice(0, 70) + "…" },
+  4: { items: ACCENT_WORDS,    title: "Ударения",              preview: (it) => `${accentedWord(it)}${it.hint ? " · " + it.hint : ""}` },
+  5: { items: PARONYM_ITEMS,   title: "Паронимы",              preview: (it) => it.phrase },
+  6: { items: PLEONASM_ITEMS,  title: "Лексические нормы",     preview: (it) => it.words.join(" / ") },
+  7: { items: MORPH_ITEMS,     title: "Морфологические нормы", preview: (it) => it.phrase.join(" ") },
+  8: { items: GRAMMAR_SETS,    title: "Грамматические нормы",  preview: (it) => it.sentences[0].text.slice(0, 60) + "…" },
+};
+
+/* ═══ Q1 — Части речи ═══ */
+function Q1({ item, onAnswer }) {
+  const [picked, setPicked] = useState([]);
+  const [showResult, setShowResult] = useState(false);
+  const [isCorrect, setIsCorrect] = useState(false);
+  const [reaction, setReaction] = useState("");
+  const toggle = (w) => { if (!showResult) setPicked(p => p.includes(w) ? p.filter(x => x !== w) : [...p, w]); };
+  const check = () => {
+    const ok = picked.length === item.correct.length && picked.every(w => item.correct.includes(w));
+    setIsCorrect(ok); setShowResult(true); setReaction(pick(ok ? CORRECT_REACTIONS : WRONG_REACTIONS));
+  };
+  return (
+    <TaskCard>
+      <p style={{ fontSize: 16, fontWeight: 600, color: C.espresso, margin: "0 0 18px", textAlign: "center" }}>{item.q}</p>
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 8, justifyContent: "center" }}>
+        {item.options.map((w) => {
+          const sel = picked.includes(w);
+          const shouldBe = item.correct.includes(w);
+          let bg = sel ? C.caramelSoft : C.card, border = sel ? C.caramel : C.cardBorder, color = C.espresso;
+          if (showResult) {
+            if (shouldBe) { bg = C.correctBg; border = C.correct; color = C.correct; }
+            else if (sel) { bg = C.wrongBg; border = C.wrong; color = C.wrong; }
+          }
+          return (
+            <button key={w} onClick={() => toggle(w)}
+              style={{ padding: "9px 16px", borderRadius: 10, border: `2px solid ${border}`, background: bg, color, fontSize: 15, fontWeight: sel || (showResult && shouldBe) ? 600 : 400, cursor: showResult ? "default" : "pointer", transition: "all 0.15s" }}>
+              {w}
+            </button>
+          );
+        })}
+      </div>
+      {!showResult ? (
+        <button onClick={check} disabled={picked.length === 0}
+          style={{ marginTop: 20, width: "100%", padding: "13px", borderRadius: 11, border: "none", background: picked.length ? `linear-gradient(135deg, ${C.caramel}, ${C.accent2})` : "rgba(255,255,255,0.04)", color: picked.length ? "#0d0f14" : C.latte, fontSize: 15, fontWeight: 700, cursor: picked.length ? "pointer" : "default", boxShadow: picked.length ? `0 4px 20px ${C.accentGlow}` : "none" }}>
+          Проверить
+        </button>
+      ) : (
+        <NextButton onClick={() => onAnswer(isCorrect)} />
+      )}
+      <Reaction show={showResult} isCorrect={isCorrect} text={reaction} />
+    </TaskCard>
+  );
+}
+
+/* ═══ Q2 — Лексическое значение ═══ */
+function Q2({ item, onAnswer }) {
+  const [showResult, setShowResult] = useState(false);
+  const [isCorrect, setIsCorrect] = useState(false);
+  const [reaction, setReaction] = useState("");
+  const answer = (val) => {
+    const ok = val === item.correct;
+    setIsCorrect(ok); setShowResult(true); setReaction(ok ? pick(CORRECT_REACTIONS) : item.explain);
+  };
+  return (
+    <TaskCard>
+      <p style={{ fontSize: 12, color: C.latte, textTransform: "uppercase", letterSpacing: "1px", margin: "0 0 8px" }}>Предложение</p>
+      <p style={{ fontSize: 15, color: C.espresso, lineHeight: 1.6, margin: "0 0 18px", fontFamily: fontDisplay }}>{item.sentence}</p>
+      <p style={{ fontSize: 12, color: C.latte, textTransform: "uppercase", letterSpacing: "1px", margin: "0 0 8px" }}>Характеристика</p>
+      <p style={{ fontSize: 15, color: C.mocha, lineHeight: 1.6, margin: "0 0 22px", background: C.cream, padding: "12px 14px", borderRadius: 10 }}>{item.definition}</p>
+      <div style={{ display: "flex", gap: 10 }}>
+        <button onClick={() => answer(true)} disabled={showResult}
+          style={{ flex: 1, padding: "13px", borderRadius: 11, border: `2px solid ${C.correct}`, background: showResult && item.correct ? C.correctBg : C.card, color: C.correct, fontSize: 15, fontWeight: 600, cursor: showResult ? "default" : "pointer" }}>
+          Верно
+        </button>
+        <button onClick={() => answer(false)} disabled={showResult}
+          style={{ flex: 1, padding: "13px", borderRadius: 11, border: `2px solid ${C.wrong}`, background: showResult && !item.correct ? C.wrongBg : C.card, color: C.wrong, fontSize: 15, fontWeight: 600, cursor: showResult ? "default" : "pointer" }}>
+          Неверно
+        </button>
+      </div>
+      {showResult && <NextButton onClick={() => onAnswer(isCorrect)} />}
+      <Reaction show={showResult} isCorrect={isCorrect} text={reaction} />
+    </TaskCard>
+  );
+}
+
+/* ═══ Q3 — Анализ текста ═══ */
+function Q3({ item, onAnswer }) {
+  const [picked, setPicked] = useState([]);
+  const [showResult, setShowResult] = useState(false);
+  const [isCorrect, setIsCorrect] = useState(false);
+  const [reaction, setReaction] = useState("");
+  const toggle = (i) => { if (!showResult) setPicked(p => p.includes(i) ? p.filter(x => x !== i) : [...p, i]); };
+  const check = () => {
+    const correctIdx = item.statements.map((s, i) => (s.correct ? i : -1)).filter(i => i >= 0);
+    const ok = picked.length === correctIdx.length && picked.every(i => correctIdx.includes(i));
+    setIsCorrect(ok); setShowResult(true); setReaction(pick(ok ? CORRECT_REACTIONS : WRONG_REACTIONS));
+  };
+  return (
+    <TaskCard>
+      <p style={{ fontSize: 14.5, color: C.espresso, lineHeight: 1.7, margin: "0 0 20px", fontFamily: fontDisplay, background: C.cream, padding: "14px 16px", borderRadius: 10 }}>
+        {item.text}
+      </p>
+      <p style={{ fontSize: 13, color: C.latte, margin: "0 0 12px" }}>Выбери все верные утверждения:</p>
+      <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+        {item.statements.map((s, i) => {
+          const sel = picked.includes(i);
+          let bg = sel ? C.caramelSoft : C.card, border = sel ? C.caramel : C.cardBorder, color = C.espresso;
+          if (showResult) {
+            if (s.correct) { bg = C.correctBg; border = C.correct; }
+            else if (sel) { bg = C.wrongBg; border = C.wrong; color = C.wrong; }
+          }
+          return (
+            <button key={i} onClick={() => toggle(i)}
+              style={{ textAlign: "left", padding: "11px 14px", borderRadius: 10, border: `2px solid ${border}`, background: bg, color, fontSize: 14, lineHeight: 1.5, cursor: showResult ? "default" : "pointer", transition: "all 0.15s" }}>
+              {s.text}
+            </button>
+          );
+        })}
+      </div>
+      {!showResult ? (
+        <button onClick={check} disabled={picked.length === 0}
+          style={{ marginTop: 18, width: "100%", padding: "13px", borderRadius: 11, border: "none", background: picked.length ? `linear-gradient(135deg, ${C.caramel}, ${C.accent2})` : "rgba(255,255,255,0.04)", color: picked.length ? "#0d0f14" : C.latte, fontSize: 15, fontWeight: 700, cursor: picked.length ? "pointer" : "default", boxShadow: picked.length ? `0 4px 20px ${C.accentGlow}` : "none" }}>
+          Проверить
+        </button>
+      ) : (
+        <NextButton onClick={() => onAnswer(isCorrect)} />
+      )}
+      <Reaction show={showResult} isCorrect={isCorrect} text={reaction} />
+    </TaskCard>
+  );
+}
+
+/* ═══ Q4 — Ударения ═══ */
+function Q4({ item, onAnswer }) {
+  const [selected, setSelected] = useState(null);
+  const [showResult, setShowResult] = useState(false);
+  const [isCorrect, setIsCorrect] = useState(false);
+  const [reaction, setReaction] = useState("");
+  const vowelIdx = getVowelIndices(item.word);
+  const correctChar = vowelIdx[item.stressed - 1];
+  const handleClick = (i) => {
+    if (showResult || !vowelIdx.includes(i)) return;
+    const num = vowelIdx.indexOf(i) + 1;
+    const ok = num === item.stressed;
+    setSelected(i); setIsCorrect(ok); setShowResult(true); setReaction(pick(ok ? CORRECT_REACTIONS : WRONG_REACTIONS));
+  };
+  return (
+    <TaskCard style={{ textAlign: "center" }}>
+      <p style={{ color: C.latte, fontSize: 14, marginBottom: 10 }}>Нажми на ударную гласную</p>
+      {item.hint && <p style={{ color: C.mocha, fontSize: 12, marginBottom: 18, background: C.cream, padding: "4px 12px", borderRadius: 6, display: "inline-block" }}>{item.hint}</p>}
+      <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: 4, marginBottom: 18, userSelect: "none" }}>
+        {item.word.split("").map((ch, i) => {
+          const isVowel = vowelIdx.includes(i);
+          const isSel = selected === i;
+          const isRight = showResult && i === correctChar;
+          const isWrongSel = showResult && isSel && !isCorrect;
+          let bg = "transparent", color = C.espresso, border = "2px solid transparent", scale = 1;
+          if (isVowel && !showResult) { border = `2px solid ${C.caramelBorder}`; bg = C.caramelSoft; }
+          if (isRight) { bg = C.correctBg; border = `2px solid ${C.correct}`; color = C.correct; scale = 1.12; }
+          if (isWrongSel) { bg = C.wrongBg; border = `2px solid ${C.wrong}`; color = C.wrong; }
+          return (
+            <div key={i} onClick={() => handleClick(i)}
+              style={{ width: 42, height: 52, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 26, fontWeight: 600, fontFamily: fontDisplay, color, background: bg, border, borderRadius: 10, cursor: isVowel && !showResult ? "pointer" : "default", transition: "all 0.2s", transform: `scale(${scale})`, textTransform: isRight ? "uppercase" : "none" }}>
+              {ch}
+            </div>
+          );
+        })}
+      </div>
+      <Reaction show={showResult} isCorrect={isCorrect} text={reaction} />
+      {showResult && <NextButton onClick={() => onAnswer(isCorrect)} />}
+    </TaskCard>
+  );
+}
+
+/* ═══ Q5 — Паронимы ═══ */
+function Q5({ item, onAnswer }) {
+  const [showResult, setShowResult] = useState(false);
+  const [isCorrect, setIsCorrect] = useState(false);
+  const answer = (val) => { const ok = val === item.correct; setIsCorrect(ok); setShowResult(true); };
+  return (
+    <TaskCard style={{ textAlign: "center" }}>
+      <p style={{ fontSize: 13, color: C.latte, margin: "0 0 14px" }}>Правильно ли употреблён пароним?</p>
+      <p style={{ fontSize: 26, fontWeight: 700, color: C.espresso, margin: "0 0 28px", letterSpacing: "-0.3px" }}>{item.phrase}</p>
+      <div style={{ display: "flex", gap: 10 }}>
+        <button onClick={() => answer(true)} disabled={showResult}
+          style={{ flex: 1, padding: "13px", borderRadius: 11, border: `2px solid ${C.correct}`, background: showResult && item.correct ? C.correctBg : C.card, color: C.correct, fontSize: 15, fontWeight: 600, cursor: showResult ? "default" : "pointer" }}>
+          Верно
+        </button>
+        <button onClick={() => answer(false)} disabled={showResult}
+          style={{ flex: 1, padding: "13px", borderRadius: 11, border: `2px solid ${C.wrong}`, background: showResult && !item.correct ? C.wrongBg : C.card, color: C.wrong, fontSize: 15, fontWeight: 600, cursor: showResult ? "default" : "pointer" }}>
+          Неверно
+        </button>
+      </div>
+      {showResult && (
+        <div style={{ marginTop: 18, textAlign: "center", animation: "fadeIn 0.3s ease" }}>
+          <span style={{ fontSize: 14, color: isCorrect ? C.correct : C.wrong, fontWeight: 600 }}>
+            {isCorrect ? pick(CORRECT_REACTIONS) : pick(WRONG_REACTIONS)}
+          </span>
+          {!item.correct && (
+            <p style={{ fontSize: 14, color: C.mocha, margin: "10px 0 0", background: C.correctBg, padding: "10px 14px", borderRadius: 10 }}>
+              Правильно: <b style={{ color: C.correct }}>{item.fix}</b>
+            </p>
+          )}
+        </div>
+      )}
+      {showResult && <NextButton onClick={() => onAnswer(isCorrect)} />}
+    </TaskCard>
+  );
+}
+
+/* ═══ Q6 — Лексические нормы ═══ */
+function Q6({ item, onAnswer }) {
+  const [selected, setSelected] = useState(null);
+  const [showResult, setShowResult] = useState(false);
+  const [isCorrect, setIsCorrect] = useState(false);
+  const [reaction, setReaction] = useState("");
+  const handleClick = (i) => {
+    if (showResult) return;
+    const ok = i === item.remove;
+    setSelected(i); setIsCorrect(ok); setShowResult(true); setReaction(pick(ok ? CORRECT_REACTIONS : WRONG_REACTIONS));
+  };
+  return (
+    <TaskCard style={{ textAlign: "center" }}>
+      <p style={{ fontSize: 13, color: C.latte, margin: "0 0 20px" }}>
+        В словосочетании есть лишнее слово (плеоназм).<br />Нажми на него, чтобы исключить.
+      </p>
+      <div style={{ display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap" }}>
+        {item.words.map((w, i) => {
+          const isSel = selected === i;
+          const isRight = showResult && i === item.remove;
+          const isWrongSel = showResult && isSel && !isCorrect;
+          let bg = C.card, border = C.caramelBorder, color = C.espresso, decoration = "none";
+          if (isRight) { bg = C.wrongBg; border = C.wrong; color = C.wrong; decoration = "line-through"; }
+          if (isWrongSel) { bg = C.cream; border = C.latte; color = C.latte; }
+          if (showResult && !isRight && !isWrongSel) { bg = C.correctBg; border = C.correct; color = C.correct; }
+          return (
+            <button key={i} onClick={() => handleClick(i)}
+              style={{ padding: "13px 22px", borderRadius: 12, border: `2px solid ${border}`, background: bg, color, fontSize: 20, fontWeight: 600, fontFamily: fontDisplay, cursor: showResult ? "default" : "pointer", transition: "all 0.2s", textDecoration: decoration }}>
+              {w}
+            </button>
+          );
+        })}
+      </div>
+      <Reaction show={showResult} isCorrect={isCorrect} text={reaction} />
+      {showResult && <NextButton onClick={() => onAnswer(isCorrect)} />}
+    </TaskCard>
+  );
+}
+
+/* ═══ Q7 — Морфологические нормы ═══ */
+function Q7({ item, onAnswer }) {
+  const [selected, setSelected] = useState(null);
+  const [input, setInput] = useState("");
+  const [phase, setPhase] = useState("pick");
+  const [isCorrect, setIsCorrect] = useState(false);
+  const [reaction, setReaction] = useState("");
+  const inputRef = useRef(null);
+  const handleWordClick = (i) => {
+    if (phase !== "pick") return;
+    setSelected(i);
+    if (i === item.wrong) { setPhase("type"); setTimeout(() => inputRef.current && inputRef.current.focus(), 50); }
+    else { setReaction("Ошибка не здесь, посмотри ещё раз 🌿"); setTimeout(() => { setSelected(null); setReaction(""); }, 1200); }
+  };
+  const checkAnswer = () => {
+    const ok = normalize(input) === normalize(item.answer);
+    setIsCorrect(ok); setPhase("result"); setReaction(ok ? pick(CORRECT_REACTIONS) : `Правильно: ${item.answer} 💛`);
+  };
+  return (
+    <TaskCard style={{ textAlign: "center" }}>
+      <p style={{ fontSize: 13, color: C.latte, margin: "0 0 20px" }}>
+        {phase === "pick" ? "Нажми на слово, в котором ошибка" : phase === "type" ? "Напечатай правильную форму" : ""}
+      </p>
+      <div style={{ display: "flex", gap: 8, justifyContent: "center", flexWrap: "wrap", marginBottom: phase !== "pick" ? 20 : 0 }}>
+        {item.phrase.map((w, i) => {
+          const isWrongWord = i === item.wrong;
+          const isSel = selected === i;
+          let bg = C.card, border = C.caramelBorder, color = C.espresso, decoration = "none";
+          if (phase === "type" && isSel) { bg = C.caramelSoft; border = C.caramel; color = C.caramel; }
+          if (phase === "result" && isWrongWord) { bg = C.wrongBg; border = C.wrong; color = C.wrong; decoration = "line-through"; }
+          return (
+            <button key={i} onClick={() => handleWordClick(i)}
+              style={{ padding: "11px 18px", borderRadius: 11, border: `2px solid ${border}`, background: bg, color, fontSize: 19, fontWeight: 600, fontFamily: fontDisplay, cursor: phase === "pick" ? "pointer" : "default", transition: "all 0.2s", textDecoration: decoration }}>
+              {w}
+            </button>
+          );
+        })}
+        {phase === "result" && (
+          <span style={{ padding: "11px 18px", borderRadius: 11, border: `2px solid ${C.correct}`, background: C.correctBg, color: C.correct, fontSize: 19, fontWeight: 700, fontFamily: fontDisplay, animation: "fadeIn 0.3s ease" }}>
+            {item.answer}
+          </span>
+        )}
+      </div>
+      {phase === "type" && (
+        <div style={{ display: "flex", gap: 8, animation: "fadeIn 0.3s ease" }}>
+          <input ref={inputRef} value={input} onChange={(e) => setInput(e.target.value)}
+            onKeyDown={(e) => { if (e.key === "Enter" && input.trim()) checkAnswer(); }}
+            placeholder="правильная форма…"
+            style={{ flex: 1, padding: "12px 16px", borderRadius: 11, border: `2px solid ${C.caramelBorder}`, background: "rgba(167,139,250,0.06)", fontSize: 16, color: C.espresso, outline: "none", boxShadow: `0 0 20px ${C.accentGlow}` }}
+          />
+          <button onClick={checkAnswer} disabled={!input.trim()}
+            style={{ padding: "12px 22px", borderRadius: 11, border: "none", background: input.trim() ? `linear-gradient(135deg, ${C.caramel}, ${C.accent2})` : C.cream, color: input.trim() ? "#fff" : C.latte, fontSize: 15, fontWeight: 600, cursor: input.trim() ? "pointer" : "default" }}>
+            ОК
+          </button>
+        </div>
+      )}
+      {phase === "result" && <NextButton onClick={() => onAnswer(isCorrect)} />}
+      <Reaction show={!!reaction} isCorrect={isCorrect} text={reaction} />
+    </TaskCard>
+  );
+}
+
+/* ═══ Q8 — Грамматические нормы ═══ */
+function Q8({ item, onAnswer }) {
+  const [assign, setAssign] = useState({});
+  const [active, setActive] = useState(null);
+  const [showResult, setShowResult] = useState(false);
+  const [isCorrect, setIsCorrect] = useState(false);
+  const [reaction, setReaction] = useState("");
+  const letters = item.errors.map(e => e.letter);
+  const currentActive = active || letters.find(l => !(l in assign)) || letters[0];
+  const pickLetter = (l) => { if (!showResult) setActive(l); };
+  const pickSentence = (num) => {
+    if (showResult) return;
+    const next = { ...assign };
+    letters.forEach(l => { if (next[l] === num) delete next[l]; });
+    next[currentActive] = num;
+    setAssign(next);
+    const nextLetter = letters.find(l => !(l in next));
+    setActive(nextLetter || currentActive);
+  };
+  const allFilled = letters.every(l => l in assign);
+  const check = () => {
+    let correct = 0;
+    letters.forEach(l => { if (assign[l] === item.answer[l]) correct++; });
+    const ok = correct === letters.length;
+    setIsCorrect(ok); setShowResult(true);
+    setReaction(`${correct} из ${letters.length} верно. ` + (ok ? pick(CORRECT_REACTIONS) : pick(WRONG_REACTIONS)));
+  };
+  const reverseAssign = {}; Object.entries(assign).forEach(([l, num]) => { reverseAssign[num] = l; });
+  const correctFor = {}; Object.entries(item.answer).forEach(([l, num]) => { correctFor[num] = l; });
+  return (
+    <TaskCard style={{ maxWidth: 640 }}>
+      <p style={{ fontSize: 13, color: C.latte, marginBottom: 14, lineHeight: 1.6 }}>
+        Установите соответствие: для каждой ошибки найдите предложение, в котором она допущена. Выберите букву, затем нажмите на нужное предложение.
+      </p>
+      <div style={{ display: "flex", flexDirection: "column", gap: 6, marginBottom: 18 }}>
+        {item.errors.map(e => {
+          const num = assign[e.letter];
+          const isActive = currentActive === e.letter && !showResult;
+          let border = C.cardBorder, bg = "rgba(255,255,255,0.02)";
+          if (isActive) { border = C.caramelBorder; bg = C.caramelSoft; }
+          if (showResult) {
+            const ok = assign[e.letter] === item.answer[e.letter];
+            border = ok ? `${C.correct}55` : `${C.wrong}55`;
+            bg = ok ? C.correctBg : C.wrongBg;
+          }
+          return (
+            <button key={e.letter} onClick={() => pickLetter(e.letter)} disabled={showResult}
+              style={{ display: "flex", alignItems: "center", gap: 10, textAlign: "left", padding: "10px 12px", borderRadius: 10, border: `2px solid ${border}`, background: bg, cursor: showResult ? "default" : "pointer" }}>
+              <span style={{ width: 26, height: 26, borderRadius: 8, background: isActive ? C.caramel : "rgba(255,255,255,0.06)", color: isActive ? "#0d0f14" : C.espresso, display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700, fontSize: 13, flexShrink: 0 }}>
+                {e.letter}
+              </span>
+              <span style={{ fontSize: 13, color: C.espresso, flex: 1, lineHeight: 1.4 }}>{e.text}</span>
+              <span style={{ fontSize: 14, fontWeight: 700, color: num ? C.caramel : C.faint, minWidth: 18, textAlign: "center" }}>{num || "—"}</span>
+              {showResult && <span style={{ fontSize: 16 }}>{assign[e.letter] === item.answer[e.letter] ? "✓" : "✗"}</span>}
+            </button>
+          );
+        })}
+      </div>
+      {showResult && (
+        <div style={{ marginBottom: 14, fontSize: 12, color: C.latte, background: "rgba(255,255,255,0.03)", borderRadius: 8, padding: "8px 12px" }}>
+          {letters.filter(l => assign[l] !== item.answer[l]).map(l => (
+            <div key={l}>Верно для <b style={{ color: C.caramel }}>{l}</b>: предложение №{item.answer[l]}</div>
+          ))}
+        </div>
+      )}
+      <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+        {item.sentences.map(s => {
+          const assignedLetter = reverseAssign[s.num];
+          const correctLetter = correctFor[s.num];
+          let border = C.cardBorder, bg = "rgba(255,255,255,0.02)", badge = null;
+          if (!showResult) {
+            if (assignedLetter) { border = C.caramelBorder; bg = C.caramelSoft; badge = assignedLetter; }
+          } else {
+            if (correctLetter) {
+              if (assignedLetter === correctLetter) { border = `${C.correct}55`; bg = C.correctBg; badge = `✓ ${correctLetter}`; }
+              else { border = `${C.wrong}55`; bg = C.wrongBg; badge = correctLetter; }
+            } else if (assignedLetter) { border = `${C.wrong}55`; bg = C.wrongBg; badge = `✗ ${assignedLetter}`; }
+          }
+          return (
+            <button key={s.num} onClick={() => pickSentence(s.num)} disabled={showResult}
+              style={{ display: "flex", alignItems: "flex-start", gap: 10, textAlign: "left", padding: "10px 12px", borderRadius: 10, border: `2px solid ${border}`, background: bg, cursor: showResult ? "default" : "pointer" }}>
+              <span style={{ fontWeight: 700, color: C.latte, fontSize: 13, flexShrink: 0 }}>{s.num})</span>
+              <span style={{ fontSize: 13.5, color: C.espresso, lineHeight: 1.5, flex: 1 }}>{s.text}</span>
+              {badge && <span style={{ fontSize: 12, fontWeight: 700, color: C.caramel, background: "rgba(255,255,255,0.06)", borderRadius: 6, padding: "2px 8px", flexShrink: 0 }}>{badge}</span>}
+            </button>
+          );
+        })}
+      </div>
+      {!showResult ? (
+        <button onClick={check} disabled={!allFilled}
+          style={{ marginTop: 18, width: "100%", padding: "14px", borderRadius: 12, border: "none", background: allFilled ? `linear-gradient(135deg,${C.caramel},${C.accent2})` : "rgba(255,255,255,0.05)", color: allFilled ? "#0d0f14" : C.latte, fontSize: 15, fontWeight: 700, cursor: allFilled ? "pointer" : "default", boxShadow: allFilled ? `0 4px 20px ${C.accentGlow}` : "none" }}>
+          Проверить
+        </button>
+      ) : (
+        <NextButton onClick={() => onAnswer(isCorrect)} />
+      )}
+      <Reaction show={showResult} isCorrect={isCorrect} text={reaction} />
+    </TaskCard>
+  );
+}
+
+/* ═══════════════════════════════════════════
+   ПРОХОЖДЕНИЕ ТЕСТА ПО ССЫЛКЕ
+   ═══════════════════════════════════════════ */
+const QUESTION_COMPONENTS = { 1: Q1, 2: Q2, 3: Q3, 4: Q4, 5: Q5, 6: Q6, 7: Q7, 8: Q8 };
+
+function CustomTestRunner({ config }) {
+  const sequence = [];
+  Object.keys(config).map(Number).sort((a, b) => a - b).forEach(type => {
+    const pool = QUESTION_POOLS[type];
+    if (!pool) return;
+    (config[type] || []).forEach(idx => {
+      if (pool.items[idx]) sequence.push({ type, item: pool.items[idx] });
+    });
+  });
+
+  const [index, setIndex] = useState(0);
+  const [stats, setStats] = useState({ correct: 0, wrong: 0 });
+  const [finished, setFinished] = useState(false);
+
+  if (sequence.length === 0) {
+    return (
+      <Shell>
+        <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}>
+          <TaskCard style={{ textAlign: "center" }}>
+            <p style={{ color: C.latte }}>Ссылка на тест повреждена или пуста.</p>
+          </TaskCard>
+        </div>
+      </Shell>
+    );
+  }
+
+  if (finished) {
+    const total = stats.correct + stats.wrong;
+    const pct = total ? Math.round((stats.correct / total) * 100) : 0;
+    return (
+      <Shell>
+        <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}>
+          <div style={{ background: "rgba(255,255,255,0.05)", backdropFilter: "blur(24px)", border: `1px solid ${C.cardBorder}`, borderRadius: 24, padding: "44px 36px", maxWidth: 360, width: "100%", textAlign: "center", boxShadow: "0 30px 80px rgba(0,0,0,0.5)", animation: "pop 0.5s cubic-bezier(.4,0,.2,1)" }}>
+            <div style={{ fontSize: 56, marginBottom: 16 }}>{pct >= 80 ? "🌟" : pct >= 50 ? "💜" : "📚"}</div>
+            <h2 style={{ fontSize: 24, fontWeight: 800, margin: "0 0 8px", background: `linear-gradient(135deg,${C.caramel},${C.accent2})`, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
+              Тест завершён!
+            </h2>
+            <p style={{ color: C.latte, fontSize: 14, margin: "0 0 28px" }}>Результат: {stats.correct} из {total}</p>
+            <div style={{ display: "flex", gap: 14, justifyContent: "center", marginBottom: 28 }}>
+              <div style={{ background: C.correctBg, border: `1px solid ${C.correct}40`, borderRadius: 14, padding: "14px 26px" }}>
+                <div style={{ fontSize: 30, fontWeight: 800, color: C.correct }}>{stats.correct}</div>
+                <div style={{ fontSize: 12, color: C.latte, marginTop: 2 }}>верно</div>
+              </div>
+              <div style={{ background: C.wrongBg, border: `1px solid ${C.wrong}40`, borderRadius: 14, padding: "14px 26px" }}>
+                <div style={{ fontSize: 30, fontWeight: 800, color: C.wrong }}>{stats.wrong}</div>
+                <div style={{ fontSize: 12, color: C.latte, marginTop: 2 }}>ошибок</div>
+              </div>
+            </div>
+            <button onClick={() => window.location.reload()}
+              style={{ width: "100%", padding: "13px", borderRadius: 12, border: `1px solid ${C.cardBorder}`, background: "rgba(255,255,255,0.05)", color: C.espresso, fontSize: 14, fontWeight: 500, cursor: "pointer" }}>
+              Пройти ещё раз
+            </button>
+          </div>
+        </div>
+      </Shell>
+    );
+  }
+
+  const current = sequence[index];
+  const Comp = QUESTION_COMPONENTS[current.type];
+
+  const handleAnswer = (ok) => {
+    setStats(s => ({ correct: s.correct + (ok ? 1 : 0), wrong: s.wrong + (ok ? 0 : 1) }));
+    if (index + 1 < sequence.length) setIndex(i => i + 1);
+    else setFinished(true);
+  };
+
+  return (
+    <Shell>
+      <TopBar onBack={() => {}} label="Тест" right={`${index + 1}/${sequence.length}`} />
+      <ProgressBar value={(index / sequence.length) * 100} />
+      <StatsRow correct={stats.correct} wrong={stats.wrong} />
+      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", padding: "20px 20px 60px" }}>
+        <Comp key={index} item={current.item} onAnswer={handleAnswer} />
+      </div>
+    </Shell>
+  );
+}
+
+/* ═══════════════════════════════════════════
+   КОНСТРУКТОР ТЕСТА
+   ═══════════════════════════════════════════ */
+function TestBuilder({ onBack }) {
+  const [selected, setSelected] = useState({});
+  const [openType, setOpenType] = useState(1);
+  const [link, setLink] = useState("");
+  const [copied, setCopied] = useState(false);
+
+  const toggle = (type, idx) => {
+    setSelected(prev => {
+      const set = new Set(prev[type] || []);
+      if (set.has(idx)) set.delete(idx); else set.add(idx);
+      return { ...prev, [type]: set };
+    });
+    setLink("");
+  };
+
+  const totalSelected = Object.values(selected).reduce((sum, set) => sum + (set ? set.size : 0), 0);
+
+  const generate = () => {
+    const config = {};
+    Object.entries(selected).forEach(([type, set]) => {
+      if (set && set.size) config[type] = [...set].sort((a, b) => a - b);
+    });
+    const encoded = btoa(JSON.stringify(config));
+    setLink(`${window.location.origin}${window.location.pathname}?test=${encoded}`);
+    setCopied(false);
+  };
+
+  const copyLink = () => {
+    navigator.clipboard.writeText(link).then(() => { setCopied(true); setTimeout(() => setCopied(false), 2000); });
+  };
+
+  return (
+    <Shell>
+      <TopBar onBack={onBack} label="Конструктор теста" right="" />
+      <div style={{ maxWidth: 640, margin: "0 auto", padding: "16px 20px 100px" }}>
+        <p style={{ fontSize: 13, color: C.latte, lineHeight: 1.6, marginBottom: 18 }}>
+          Отметь вопросы, которые войдут в тест. Порядок в тесте — по номеру задания (1→8), внутри задания — в порядке выбора.
+        </p>
+        {Object.entries(QUESTION_POOLS).map(([type, pool]) => {
+          const set = selected[type] || new Set();
+          const isOpen = openType === Number(type);
+          return (
+            <div key={type} style={{ marginBottom: 10, border: `1px solid ${C.cardBorder}`, borderRadius: 14, overflow: "hidden" }}>
+              <button onClick={() => setOpenType(isOpen ? null : Number(type))}
+                style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 16px", background: "rgba(255,255,255,0.03)", border: "none", cursor: "pointer", textAlign: "left" }}>
+                <span style={{ fontSize: 14, fontWeight: 600, color: C.espresso }}>Задание {type} · {pool.title}</span>
+                <span style={{ fontSize: 12, color: set.size ? C.caramel : C.faint, fontWeight: 700 }}>
+                  {set.size > 0 ? `${set.size} выбрано · ` : ""}{isOpen ? "▲" : "▼"}
+                </span>
+              </button>
+              {isOpen && (
+                <div style={{ padding: "8px 12px 12px", display: "flex", flexDirection: "column", gap: 6, maxHeight: 320, overflowY: "auto" }}>
+                  {pool.items.map((it, idx) => {
+                    const checked = set.has(idx);
+                    return (
+                      <label key={idx} style={{ display: "flex", alignItems: "flex-start", gap: 10, padding: "8px 10px", borderRadius: 8, background: checked ? C.caramelSoft : "transparent", cursor: "pointer", fontSize: 13, color: C.espresso, lineHeight: 1.4 }}>
+                        <input type="checkbox" checked={checked} onChange={() => toggle(Number(type), idx)} style={{ marginTop: 2, accentColor: C.caramel }} />
+                        <span>{pool.preview(it)}</span>
+                      </label>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          );
+        })}
+
+        <div style={{ marginTop: 24, padding: "18px", background: "rgba(255,255,255,0.04)", border: `1px solid ${C.cardBorder}`, borderRadius: 14 }}>
+          <p style={{ fontSize: 13, color: C.latte, marginBottom: 12 }}>
+            Выбрано вопросов: <b style={{ color: C.caramel }}>{totalSelected}</b>
+          </p>
+          <button onClick={generate} disabled={totalSelected === 0}
+            style={{ width: "100%", padding: "13px", borderRadius: 11, border: "none", background: totalSelected ? `linear-gradient(135deg,${C.caramel},${C.accent2})` : "rgba(255,255,255,0.04)", color: totalSelected ? "#0d0f14" : C.latte, fontSize: 15, fontWeight: 700, cursor: totalSelected ? "pointer" : "default", boxShadow: totalSelected ? `0 4px 20px ${C.accentGlow}` : "none" }}>
+            Сгенерировать ссылку
+          </button>
+          {link && (
+            <div style={{ marginTop: 14, animation: "fadeIn 0.3s ease" }}>
+              <div style={{ wordBreak: "break-all", fontSize: 12, color: C.mocha, background: "rgba(0,0,0,0.2)", padding: "10px 12px", borderRadius: 8, marginBottom: 8 }}>
+                {link}
+              </div>
+              <button onClick={copyLink}
+                style={{ width: "100%", padding: "11px", borderRadius: 10, border: `1px solid ${C.caramelBorder}`, background: "transparent", color: copied ? C.correct : C.caramel, fontSize: 14, fontWeight: 600, cursor: "pointer" }}>
+                {copied ? "Скопировано ✓" : "Скопировать ссылку"}
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+    </Shell>
+  );
+}
 
 export default function App() {
   const [page, setPage] = useState("home");
   const goHome = () => setPage("home");
+
+  const customConfig = (() => {
+    try {
+      const t = new URLSearchParams(window.location.search).get("test");
+      return t ? JSON.parse(atob(t)) : null;
+    } catch { return null; }
+  })();
+
+  if (customConfig) return <CustomTestRunner config={customConfig} />;
 
   return (
     <PasswordGate>
@@ -1653,6 +2257,7 @@ export default function App() {
       {page === "task6" && <Task6 onBack={goHome} />}
       {page === "task7" && <Task7 onBack={goHome} />}
       {page === "task8" && <Task8 onBack={goHome} />}
+      {page === "testbuilder" && <TestBuilder onBack={goHome} />}
     </PasswordGate>
   );
 }
