@@ -1842,6 +1842,10 @@ const QUESTION_POOLS = {
   8: { items: GRAMMAR_SETS,    title: "Грамматические нормы",  preview: (it) => it.sentences[0].text.slice(0, 60) + "…" },
   9: { items: ROOT_ITEMS,      title: "Правописание корней",   preview: (it) => it.rows.map(r => r.join("/")).join(" · ") },
   10: { items: PREFIX_ITEMS,   title: "Правописание приставок", preview: (it) => it.rows.map(r => r.join("/")).join(" · ") },
+  11: { items: SUFFIX_ITEMS,   title: "Суффиксы",               preview: (it) => it.rows.map(r => r.join("/")).join(" · ") },
+  12: { items: VERB_ITEMS,     title: "Окончания глаголов и причастий", preview: (it) => it.rows.map(r => r.join("/")).join(" · ") },
+  13: { items: NEGATION_ITEMS,  title: "НЕ и НИ",                preview: (it) => it.phrase },
+  14: { items: SPELLING14_ITEMS, title: "Слитно / раздельно",   preview: (it) => it.phrase },
 };
 
 /* ═══ Q1 — Части речи ═══ */
@@ -2249,10 +2253,14 @@ function Q8({ item, onAnswer }) {
 /* ═══════════════════════════════════════════
    ПРОХОЖДЕНИЕ ТЕСТА ПО ССЫЛКЕ
    ═══════════════════════════════════════════ */
-const QUESTION_COMPONENTS = { 1: Q1, 2: Q2, 3: Q3, 4: Q4, 5: Q5, 6: Q6, 7: Q7, 8: Q8, 9: Q9, 10: Q10 };
+const QUESTION_COMPONENTS = { 1: Q1, 2: Q2, 3: Q3, 4: Q4, 5: Q5, 6: Q6, 7: Q7, 8: Q8, 9: Q9, 10: Q10, 11: Q11, 12: Q12, 13: Q13, 14: Q14 };
 
 function Q9({ item, onAnswer }) { return <RowMatchCore item={item} onResult={onAnswer} />; }
 function Q10({ item, onAnswer }) { return <RowMatchCore item={item} onResult={onAnswer} />; }
+function Q11({ item, onAnswer }) { return <RowMatchCore item={item} onResult={onAnswer} />; }
+function Q12({ item, onAnswer }) { return <RowMatchCore item={item} onResult={onAnswer} />; }
+function Q13({ item, onAnswer }) { return <VerdictCore item={item} onResult={onAnswer} prompt="Слово(-сочетание) написано правильно?" />; }
+function Q14({ item, onAnswer }) { return <VerdictCore item={item} onResult={onAnswer} prompt="Выделенное слово написано правильно?" />; }
 
 function correctAnswerInfo(type, item) {
   switch (type) {
@@ -2275,10 +2283,15 @@ function correctAnswerInfo(type, item) {
     case 8:
       return Object.entries(item.answer).map(([l, num]) => `${l} → №${num}`).join(", ");
     case 9:
-    case 10: {
+    case 10:
+    case 11:
+    case 12: {
       const ok = item.same.map((s, i) => s ? i + 1 : null).filter(Boolean);
       return `Одинаковая буква в строках: ${ok.join(", ")}`;
     }
+    case 13:
+    case 14:
+      return item.correct ? "Написано верно." : `Правильно: ${item.fix}`;
     default:
       return "";
   }
