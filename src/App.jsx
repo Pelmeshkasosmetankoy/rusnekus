@@ -1570,12 +1570,79 @@ function Task8({onBack}){
 /* ═══════════════════════════════════════════
    КОРНЕВОЙ КОМПОНЕНТ
    ═══════════════════════════════════════════ */
+/* ═══ ЭКРАН ВХОДА ═══ */
+function PasswordGate({ children }) {
+  const SITE_PASSWORD = "абракадабра"; // ← впиши сюда свой код доступа
+
+  const [unlocked, setUnlocked] = useState(() => {
+    try { return localStorage.getItem("rnk-unlocked") === "yes"; } catch { return false; }
+  });
+  const [input, setInput] = useState("");
+  const [shake, setShake] = useState(false);
+
+  if (unlocked) return children;
+
+  const tryUnlock = () => {
+    if (input.trim().toLowerCase() === SITE_PASSWORD.toLowerCase()) {
+      try { localStorage.setItem("rnk-unlocked", "yes"); } catch {}
+      setUnlocked(true);
+    } else {
+      setShake(true);
+      setInput("");
+      setTimeout(() => setShake(false), 500);
+    }
+  };
+
+  return (
+    <Shell>
+      <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}>
+        <div style={{
+          background: "rgba(255,255,255,0.05)", backdropFilter: "blur(24px)",
+          border: `1px solid ${C.cardBorder}`, borderRadius: 24, padding: "44px 36px",
+          maxWidth: 360, width: "100%", textAlign: "center",
+          boxShadow: "0 30px 80px rgba(0,0,0,0.5)",
+          animation: shake ? "shake 0.4s ease" : "pop 0.5s cubic-bezier(.4,0,.2,1)",
+        }}>
+          <div style={{ fontSize: 40, marginBottom: 14 }}>🔒</div>
+          <h1 style={{ fontSize: 32, fontWeight: 800, margin: "0 0 6px", letterSpacing: "-1px" }}>
+            <span style={{ background: "linear-gradient(135deg,#c4b5fd,#a78bfa)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Рус</span>
+            <span style={{ background: "linear-gradient(135deg,#f0abfc,#fda4af)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>НеКусь</span>
+          </h1>
+          <p style={{ color: C.latte, fontSize: 14, margin: "0 0 24px" }}>Введи код доступа</p>
+          <input
+            type="password"
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={(e) => { if (e.key === "Enter") tryUnlock(); }}
+            placeholder="код доступа"
+            autoFocus
+            style={{
+              width: "100%", padding: "13px 16px", borderRadius: 12,
+              border: `2px solid ${C.caramelBorder}`, background: "rgba(167,139,250,0.06)",
+              fontSize: 16, color: C.espresso, outline: "none", textAlign: "center",
+              boxShadow: `0 0 20px ${C.accentGlow}`, marginBottom: 14,
+            }}
+          />
+          <button onClick={tryUnlock} style={{
+            width: "100%", padding: "13px", borderRadius: 12, border: "none",
+            background: `linear-gradient(135deg, ${C.caramel}, ${C.accent2})`,
+            color: "#0d0f14", fontSize: 15, fontWeight: 700, cursor: "pointer",
+            boxShadow: `0 4px 20px ${C.accentGlow}`,
+          }}>
+            Войти
+          </button>
+        </div>
+      </div>
+    </Shell>
+  );
+}
+
 export default function App() {
   const [page, setPage] = useState("home");
   const goHome = () => setPage("home");
 
   return (
-    <>
+    <PasswordGate>
       {page === "home" && <HomePage onNavigate={setPage} />}
       {page === "task1" && <Task1 onBack={goHome} />}
       {page === "task2" && <Task2 onBack={goHome} />}
@@ -1586,6 +1653,7 @@ export default function App() {
       {page === "task6" && <Task6 onBack={goHome} />}
       {page === "task7" && <Task7 onBack={goHome} />}
       {page === "task8" && <Task8 onBack={goHome} />}
-    </>
+    </PasswordGate>
   );
+}
 }
