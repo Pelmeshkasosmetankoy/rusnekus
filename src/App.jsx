@@ -473,6 +473,73 @@ const ROOT_ITEMS = [
   },
 ];
 
+
+const SUFFIX_ITEMS = [
+  {
+    rows: [
+      ["заботл_вый", "опрометч_вый", "талантл_вый"],
+      ["плюш_вый", "ситц_вый", "глянц_вый"],
+      ["совет_вал", "забот_вый", "проб_вал"],
+      ["волн_вался", "проб_вать", "совет_вать"],
+      ["увид_л", "выкле_л", "услыш_л"],
+    ],
+    same: [true, true, false, true, false],
+  },
+  {
+    rows: [
+      ["рассказ_вать", "подсказ_вать", "развяз_вать"],
+      ["заботл_вый", "плюш_вый", "совет_вал"],
+      ["посе_л", "наде_лся", "ка_лся"],
+      ["развяз_вать", "проб_вать", "заботл_вый"],
+      ["огляде_лся", "успе_л", "влад_л"],
+    ],
+    same: [true, false, true, false, true],
+  },
+  {
+    rows: [
+      ["рассказ_вать", "посе_л", "плюш_вый"],
+      ["команд_вал", "образ_вался", "торг_вал"],
+      ["посе_л", "влад_л", "наде_лся"],
+      ["выкле_л", "постро_л", "успоко_л"],
+      ["команд_вал", "талантл_вый", "ситц_вый"],
+    ],
+    same: [false, true, false, true, false],
+  },
+];
+
+const VERB_ITEMS = [
+  {
+    rows: [
+      ["уд_ржишь", "усл_шишь", "прогон_шь"],
+      ["стел_шь", "бре_шь", "пиш_шь"],
+      ["уд_ржишь", "пиш_шь", "стро_шь"],
+      ["вид_щий", "стро_щий", "говор_щий"],
+      ["вид_щий", "дыш_щий", "пиш_щий"],
+    ],
+    same: [true, true, false, true, false],
+  },
+  {
+    rows: [
+      ["вид_мый", "люб_мый", "хран_мый"],
+      ["чит_емый", "реш_емый", "обсужд_емый"],
+      ["вид_мый", "чит_емый", "гон_мый"],
+      ["колебл_шься", "маш_шь", "колыш_шься"],
+      ["вид_мый", "колебл_шься", "гон_мый"],
+    ],
+    same: [true, true, false, true, false],
+  },
+  {
+    rows: [
+      ["стел_шь", "вид_щий", "чит_емый"],
+      ["тр_сущийся", "пиш_щий", "плещ_щий"],
+      ["уд_ржишь", "колебл_шься", "стро_щий"],
+      ["та_щий", "се_щий", "чита_щий"],
+      ["вид_мый", "та_щий", "колебл_шься"],
+    ],
+    same: [false, true, false, true, false],
+  },
+];
+
 const PREFIX_ITEMS = [
   {
     rows: [
@@ -838,6 +905,8 @@ function HomePage({ onNavigate }) {
     { id: 8, page: "task8", title: "Грамматические нормы", desc: "Сопоставь ошибки и предложения" },
     { id: 9, page: "task9", title: "Правописание корней", desc: "Найди строки с одинаковой буквой" },
     { id: 10, page: "task10", title: "Правописание приставок", desc: "Найди строки с одинаковой буквой" },
+    { id: 11, page: "task11", title: "Суффиксы", desc: "Найди строки с одинаковой буквой" },
+    { id: 12, page: "task12", title: "Окончания глаголов и причастий", desc: "Найди строки с одинаковой буквой" },
     { id: "✨", page: "testbuilder", title: "Конструктор теста", desc: "Собери тест и пришли ссылку ученику" },
   ];
 
@@ -2467,6 +2536,43 @@ function Task10({ onBack }) {
   );
 }
 
+/* ═══ ЗАДАНИЯ 11-12 — Суффиксы / окончания глаголов ═══ */
+function Task11({ onBack }) {
+  const round = useRound(SUFFIX_ITEMS, SUFFIX_ITEMS.length);
+  const current = round.items[round.index];
+  if (round.finished) return <ResultScreen correct={round.stats.correct} wrong={round.stats.wrong} hasRetry={round.wrongItems.length > 0} onRetry={round.retryWrong} onRestart={round.restart} onBack={onBack} />;
+  if (!current) return null;
+  const handleResult = (ok) => { round.record(ok, current); round.next(); };
+  return (
+    <Shell>
+      <TopBar onBack={onBack} label="Задание 11 · Суффиксы" right={`${round.index + 1}/${round.items.length}`} />
+      <ProgressBar value={(round.index / round.items.length) * 100} />
+      <StatsRow correct={round.stats.correct} wrong={round.stats.wrong} />
+      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", padding: "20px 20px 60px" }}>
+        <RowMatchCore key={round.index} item={current} onResult={handleResult} />
+      </div>
+    </Shell>
+  );
+}
+
+function Task12({ onBack }) {
+  const round = useRound(VERB_ITEMS, VERB_ITEMS.length);
+  const current = round.items[round.index];
+  if (round.finished) return <ResultScreen correct={round.stats.correct} wrong={round.stats.wrong} hasRetry={round.wrongItems.length > 0} onRetry={round.retryWrong} onRestart={round.restart} onBack={onBack} />;
+  if (!current) return null;
+  const handleResult = (ok) => { round.record(ok, current); round.next(); };
+  return (
+    <Shell>
+      <TopBar onBack={onBack} label="Задание 12 · Окончания глаголов и причастий" right={`${round.index + 1}/${round.items.length}`} />
+      <ProgressBar value={(round.index / round.items.length) * 100} />
+      <StatsRow correct={round.stats.correct} wrong={round.stats.wrong} />
+      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", padding: "20px 20px 60px" }}>
+        <RowMatchCore key={round.index} item={current} onResult={handleResult} />
+      </div>
+    </Shell>
+  );
+}
+
 
 export default function App() {
   const [page, setPage] = useState("home");
@@ -2496,6 +2602,8 @@ export default function App() {
       {page === "testbuilder" && <TestBuilder onBack={goHome} />}
       {page === "task9" && <Task9 onBack={goHome} />}
       {page === "task10" && <Task10 onBack={goHome} />}
+      {page === "task11" && <Task11 onBack={goHome} />}
+      {page === "task12" && <Task12 onBack={goHome} />}
     </PasswordGate>
   );
 }
