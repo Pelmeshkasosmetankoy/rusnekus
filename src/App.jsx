@@ -2960,6 +2960,7 @@ export default function App() {
       {page === "task12" && <Task12 onBack={goHome} />}
       {page === "task13" && <Task13 onBack={goHome} />}
       {page === "task14" && <Task14 onBack={goHome} />}
+      {page === "essays" && <EssaysPage onBack={goHome} />}
     </PasswordGate>
   );
 }
